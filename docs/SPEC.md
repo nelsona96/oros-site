@@ -12,6 +12,9 @@ document does not restate it. Build sequencing lives in [BUILD_PLAN.md](BUILD_PL
 | Framework | Next.js, App Router. Server Components by default; `"use client"` only where interactivity requires it. |
 | Language | TypeScript, strict |
 | Styling | Tailwind v4, CSS-first config via `@theme` |
+| Components | shadcn, **Base UI** primitives (a `base-*` style preset) |
+| Icons | `lucide-react`, wrapped for a 1.5px stroke per DESIGN.md §6 |
+| Forms | `react-hook-form` + `@hookform/resolvers` + Zod |
 | Content | Sanity Content Lake, queried with GROQ. **No separate database or ORM.** |
 | Images | Sanity asset CDN via `@sanity/image-url` |
 | Portfolio video | Mux, uploaded through Studio via `sanity-plugin-mux-input` |
@@ -22,6 +25,10 @@ document does not restate it. Build sequencing lives in [BUILD_PLAN.md](BUILD_PL
 | Hosting | Vercel (Next app) + `sanity deploy` (Studio) |
 | Analytics | Vercel Analytics |
 
+**Not used:** `next-themes`. The site is dark-only and committed per DESIGN.md §2 —
+`<html className="dark">` is the entire theming implementation, so a theme-switching
+library is dead weight.
+
 ### Dependency discipline
 
 The justified photo grid is built with **CSS flexbox** — `flex-grow` proportional to each
@@ -29,6 +36,37 @@ image's aspect ratio, which produces justified rows natively with zero JavaScrip
 layout shift, since aspect ratios come from Sanity's asset metadata at request time. A
 layout library (`react-photo-album`) is the fallback only if last-row behavior proves
 unworkable in practice. Not a default.
+
+### Token bridging
+
+shadcn generates its own semantic layer (`--background`, `--foreground`, `--primary`,
+`--muted`, `--border`, `--ring`, `--radius`) in oklch, and its `baseColor` options
+(`neutral, stone, zinc, mauve, olive, mist, taupe`) do not include Sand — so that block is
+**overwritten wholesale** to alias the DESIGN.md §4 tokens rather than left as generated:
+
+```css
+--background: var(--app-bg);
+--foreground: var(--text-primary);
+--card:       var(--surface);
+--primary:    var(--accent-solid);
+--muted-foreground: var(--text-secondary);
+--border:     var(--border-subtle);
+--ring:       var(--focus-ring);
+--radius:     2px;
+```
+
+DESIGN.md §4 stays the single source of truth; shadcn components inherit Sand/Gold/Amber
+automatically and `npx shadcn add` keeps working untouched. Config: `cssVariables: true`,
+`rsc: true`, `tsx: true`, `iconLibrary: "lucide"`.
+
+### shadcn components used
+
+Button · Dialog (video overlay and lightbox) · Input · Textarea · Select · Label · Form ·
+Sonner (form result toast) · Skeleton.
+
+**Not used:** `Tabs` (portfolio tabs are real routes rendered as styled `Link`s — see §4),
+`Sheet` (no hamburger — see DESIGN.md §6), `Card` (surfaces are token-driven per DESIGN.md
+§4, not componentized).
 
 ---
 
@@ -39,11 +77,12 @@ its own `package.json`, deployed separately.
 
 ```
 oros-site/
-├── DESIGN.md · SPEC.md · BUILD_PLAN.md
-├── .github/PULL_REQUEST_TEMPLATE.md
+├── docs/DESIGN.md · docs/SPEC.md · docs/BUILD_PLAN.md
+├── .github/PULL_REQUEST_TEMPLATE.md · .github/workflows/ci.yml
 ├── app/
 │   ├── layout.tsx                    # <html className="dark">, fonts
 │   ├── page.tsx                      # landing
+│   ├── not-found.tsx · error.tsx · loading.tsx
 │   ├── portfolio/
 │   │   ├── layout.tsx                # tabs
 │   │   ├── photos/page.tsx
@@ -52,9 +91,11 @@ oros-site/
 │   │       └── @modal/(.)[slug]/     # intercepting route → player overlay
 │   ├── about/page.tsx
 │   ├── contact/page.tsx
-│   └── api/contact/route.ts
+│   └── api/{contact,revalidate}/route.ts
 ├── components/
+│   └── ui/                           # shadcn output
 ├── lib/sanity/{client,image,queries}.ts
+├── scripts/seed.ts                   # placeholder content
 ├── e2e/                              # Playwright
 └── studio/                           # own package.json, excluded from root tsconfig
     ├── sanity.config.ts · sanity.cli.ts
@@ -72,7 +113,7 @@ Four verticals are a shared list used by `photo`, `film`, and `service`:
 | Field | Type | Notes |
 |---|---|---|
 | `image` | image (hotspot) | Required |
-| `image.alt` | string | **Required** — accessibility floor in DESIGN.md §10 |
+| `image.alt` | string | **Required** — accessibility floor in DESIGN.md §11 |
 | `category` | string (list of 4) | Required; drives the Photos tab filters |
 | `caption` | string | Optional |
 | `capture` | object | Optional: `camera`, `lens`, `aperture`, `shutter` — renders the mono metadata line from DESIGN.md §5 |
@@ -129,13 +170,19 @@ can't accidentally create a second.
 | `/about` | Server Component | Portrait, long-form about, the faith/mission paragraph |
 | `/contact` | Client form in a Server page | Form → `/api/contact` |
 | `/api/contact` | Route Handler | Validates, honeypot check, sends via Resend |
+| `/api/revalidate` | Route Handler | Sanity webhook receiver — see §7 |
 
 Portfolio tabs are **real routes**, not `?tab=` — shareable, indexable, and each page runs
 its own GROQ query server-side rather than one client component holding both datasets.
 
 The video overlay uses an **intercepting route** so it has a real URL, the back button
-closes it, and the grid stays mounted behind — which is what DESIGN.md §8 describes.
+closes it, and the grid stays mounted behind — which is what DESIGN.md §9 describes.
 Direct navigation and refresh land on a full page, so shared links work.
+
+**System pages:** `not-found.tsx`, `error.tsx`, and `loading.tsx` at the app root, plus
+empty states for any filtered view with no results (e.g. a category filter with nothing
+published yet). Copy follows DESIGN.md's writing guidance — state what's there and what
+to do next, never apologize.
 
 ---
 
@@ -163,6 +210,7 @@ glance.
 | `NEXT_PUBLIC_SITE_URL` | Next | Canonical URLs, OG images, sitemap |
 | `RESEND_API_KEY` | Next, server only | |
 | `CONTACT_TO_EMAIL` | Next, server only | |
+| `SANITY_REVALIDATE_SECRET` | Next, server only | Verifies the Sanity webhook — see §7 |
 
 Mux credentials live in the Studio's plugin config, entered once in the Studio UI —
 **the Next app needs no Mux secret**, since playback IDs on a public policy are safe to
@@ -177,6 +225,14 @@ an **Editor** through manage.sanity.io — no code, no local setup, no repo acce
 
 Video uploads happen inside Studio through the Mux plugin, so there is one place to
 manage everything. No preview environment: publish, then refresh the site.
+
+### Revalidation
+
+A Sanity webhook fires on publish, hits `/api/revalidate`, which verifies the payload
+signature against `SANITY_REVALIDATE_SECRET` and calls `revalidateTag`. Queries are
+tagged by document type (`photo`, `film`, `testimonial`, `service`, `siteSettings`) so
+publishing one photo doesn't invalidate the films feed. Your friend publishes, refreshes,
+and the change is live within seconds — no fixed-interval delay to explain, no redeploy.
 
 ---
 
@@ -200,7 +256,7 @@ Meaningful coverage of core interactions, not exhaustive coverage.
 
 ## 9. Accessibility & performance floor
 
-From DESIGN.md §10, restated as build requirements: alt text enforced at the schema
+From DESIGN.md §11, restated as build requirements: alt text enforced at the schema
 level; visible keyboard focus using `--focus-ring`; `prefers-reduced-motion` disabling the
 sunrise warm-up, scroll fade-ups, and ascent warming, with the hero falling back to its
 poster frame; the video overlay traps focus and closes on Escape; captions on ministry and
@@ -223,3 +279,6 @@ Not in the MVP, recorded so they aren't rediscovered as surprises:
 - Instagram feed — costs a token that expires and needs manual refreshing
 - Draft preview / Presentation tool
 - Client delivery galleries, blog, multi-language
+- Automated accessibility assertions (axe) in Playwright — manual checks cover the MVP
+- Storybook — the dev-only `/styleguide` route (Phase 2a) covers most of the value at
+  this size without the added setup and maintenance

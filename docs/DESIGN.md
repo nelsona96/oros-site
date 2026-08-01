@@ -207,7 +207,56 @@ made-from-a-template.
 
 ---
 
-## 6. Layout & density
+## 6. Material, icons, and navigation
+
+### Radius
+
+| Surface | Radius |
+|---|---|
+| Photographs, thumbnails, video frames | **0** |
+| Buttons, inputs, chips, filters | **2px** |
+
+A photograph is a print, not a card — rounded corners on imagery is the single fastest
+way to make a portfolio read as templated. Controls take 2px so they register as
+interactive without going soft.
+
+### Elevation
+
+**No drop shadows anywhere.** On a near-black ground they barely register, and they
+import an app idiom the site otherwise avoids. Elevation is carried by surface lightness
+and warmth, which §4 already established: `--app-bg` (sand-1) is the floor,
+`--surface` (gold-2) is anything lifted off it, and a `--border-subtle` hairline defines
+the edge. Warm furniture on a neutral floor doing double duty as a depth system.
+
+### Icons
+
+lucide, used **functionally only** — roughly seven in the whole site: play, close,
+chevron left/right, menu, Instagram, external link. Everything else is a text label,
+**including the category filters**.
+
+- Stroke **1.5px**, size **16–20px**. lucide's 2px-at-24px default is chunky beside a
+  high-contrast serif and 11px mono caps.
+- Coloured with text tokens (`--text-secondary`, `--text-accent`), never solid accents.
+- Wrapped once in a single component so defaults can't drift as components are added.
+
+**No category icons on the services block.** There is no non-cliché glyph for "wedding",
+and four stock marks would undercut the argument that this studio has a distinct eye.
+
+### Navigation
+
+Three inline links — **Work / About / Contact** — in mono caps beside the ridgeline mark,
+visible at every breakpoint. **No hamburger.** Photos and Videos live inside `/portfolio`
+as tabs, so the top nav is only ever three items, and three items fit comfortably at
+375px. A drawer holding three links is ceremony, and skipping it removes a component, a
+focus trap, and an animation.
+
+The header sits **transparent over the hero** and gains a `--surface` background once
+scrolled past it. An opaque bar across the top of a full-bleed film loop defeats the
+opening.
+
+---
+
+## 7. Layout & density
 
 **Mobile-first, responsive up to desktop.** Phone layout is the design; desktop is the
 expansion.
@@ -222,7 +271,7 @@ on a site whose entire argument is that they compose well.
 
 ---
 
-## 7. Landing page
+## 8. Landing page
 
 1. **Hero film loop.** Silent, looped, autoplaying, **no controls, not clickable** —
    pure atmosphere. Full viewport height on desktop; on tablet and phone it stops short
@@ -241,7 +290,7 @@ on a site whose entire argument is that they compose well.
 
 ---
 
-## 8. Portfolio
+## 9. Portfolio
 
 Two tabs, never mixed.
 
@@ -258,7 +307,7 @@ away. The screening room doing its job.
 
 ---
 
-## 9. Motion
+## 10. Motion
 
 Restrained, plus the ascent.
 
@@ -275,7 +324,7 @@ The hero loop respects it too — poster frame only.
 
 ---
 
-## 10. Quality floor
+## 11. Quality floor
 
 Not features, just non-negotiable: responsive to mobile, visible keyboard focus using
 `--focus-ring`, `prefers-reduced-motion` honored, alt text on every photograph, captions
@@ -283,7 +332,7 @@ on ministry and wedding films where speech carries meaning.
 
 ---
 
-## 11. Open content dependencies
+## 12. Open content dependencies
 
 Design decisions are settled; these are assets the build will need.
 

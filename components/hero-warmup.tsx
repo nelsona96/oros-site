@@ -33,7 +33,9 @@ export function HeroWarmup() {
       aria-hidden
       className="pointer-events-none absolute inset-0 opacity-0"
       style={{
-        backgroundImage: "radial-gradient(ellipse at center, transparent 45%, var(--light-solid) 100%)",
+        backgroundImage:
+          "radial-gradient(ellipse farthest-side at center, transparent 15%, var(--light-solid) 100%)",
+        mixBlendMode: "screen",
       }}
     />
   );

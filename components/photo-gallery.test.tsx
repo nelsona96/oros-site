@@ -1,0 +1,78 @@
+import { render, screen, fireEvent } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+import type { Photo } from "@/lib/sanity/types";
+
+vi.mock("@/lib/sanity/image", () => ({
+  urlFor: () => ({
+    width: () => ({ quality: () => ({ url: () => "https://cdn.sanity.io/photo.jpg" }) }),
+  }),
+}));
+
+import { PhotoGallery } from "./photo-gallery";
+
+const makePhoto = (id: string, overrides: Partial<Photo> = {}): Photo => ({
+  _id: id,
+  category: "weddings",
+  featured: false,
+  image: {
+    alt: `Photo ${id}`,
+    asset: {
+      url: "https://cdn.sanity.io/photo.jpg",
+      metadata: { dimensions: { width: 1200, height: 800, aspectRatio: 1.5 }, lqip: "data:image/png;base64,x" },
+    },
+  },
+  ...overrides,
+});
+
+const photos: Photo[] = [
+  makePhoto("p1", {
+    caption: "The first look",
+    capture: { camera: "NIKON Z8", lens: "85mm", aperture: "ƒ1.4", shutter: "1/200" },
+  }),
+  makePhoto("p2"),
+  makePhoto("p3"),
+];
+
+describe("PhotoGallery", () => {
+  it("does not render dialog content until a photo is clicked", () => {
+    render(<PhotoGallery photos={photos} />);
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("opens the lightbox with the clicked photo's caption and capture metadata", () => {
+    render(<PhotoGallery photos={photos} />);
+    fireEvent.click(screen.getByAltText("Photo p1"));
+    // The caption also becomes the dialog's (sr-only) accessible title, so
+    // scope to the visible caption paragraph specifically.
+    expect(screen.getByText("The first look", { selector: "p" })).toBeInTheDocument();
+    expect(screen.getByText("NIKON Z8 · 85mm · ƒ1.4 · 1/200")).toBeInTheDocument();
+  });
+
+  it("omits the capture line entirely when no capture data is set", () => {
+    render(<PhotoGallery photos={photos} />);
+    fireEvent.click(screen.getByAltText("Photo p2"));
+    expect(screen.queryByText(/·/)).not.toBeInTheDocument();
+  });
+
+  it("disables previous at the first photo and next at the last", () => {
+    render(<PhotoGallery photos={photos} />);
+    fireEvent.click(screen.getByAltText("Photo p1"));
+    expect(screen.getByRole("button", { name: "Previous photo" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Next photo" })).not.toBeDisabled();
+  });
+
+  it("navigates forward and backward between photos", () => {
+    render(<PhotoGallery photos={photos} />);
+    fireEvent.click(screen.getByAltText("Photo p1"));
+
+    fireEvent.click(screen.getByRole("button", { name: "Next photo" }));
+    expect(screen.getByRole("button", { name: "Previous photo" })).not.toBeDisabled();
+    expect(screen.getByRole("button", { name: "Next photo" })).not.toBeDisabled();
+
+    fireEvent.click(screen.getByRole("button", { name: "Next photo" }));
+    expect(screen.getByRole("button", { name: "Next photo" })).toBeDisabled();
+
+    fireEvent.click(screen.getByRole("button", { name: "Previous photo" }));
+    expect(screen.getByRole("button", { name: "Next photo" })).not.toBeDisabled();
+  });
+});

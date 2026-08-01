@@ -1,11 +1,22 @@
+import { CategoryFilter } from "@/components/category-filter";
 import { Container } from "@/components/container";
-import { JustifiedGrid } from "@/components/justified-grid";
+import { PhotoGallery } from "@/components/photo-gallery";
 import { Section } from "@/components/section";
 import { Display, Eyebrow } from "@/components/typography";
 import { getPhotos } from "@/lib/sanity/queries";
+import { CATEGORIES, type Category } from "@/lib/sanity/types";
 
-export default async function PhotosPage() {
-  const photos = await getPhotos();
+function parseCategory(value: string | string[] | undefined): Category | undefined {
+  return CATEGORIES.find((category) => category.value === value)?.value;
+}
+
+export default async function PhotosPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ category?: string }>;
+}) {
+  const category = parseCategory((await searchParams).category);
+  const photos = await getPhotos(category);
 
   return (
     <Section className="pt-8 md:pt-12">
@@ -16,7 +27,8 @@ export default async function PhotosPage() {
             Photos.
           </Display>
         </div>
-        <JustifiedGrid photos={photos} />
+        <CategoryFilter active={category} />
+        <PhotoGallery photos={photos} />
       </Container>
     </Section>
   );

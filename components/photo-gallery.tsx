@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useRef, useState } from "react";
-import Image from "next/image";
+import Image, { getImageProps } from "next/image";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { urlFor } from "@/lib/sanity/image";
 import type { Category, Photo } from "@/lib/sanity/types";
@@ -9,6 +9,13 @@ import { CategoryFilter } from "./category-filter";
 import { Icon } from "./icon";
 import { JustifiedGrid } from "./justified-grid";
 import { Dialog, DialogClose, DialogContent, DialogTitle } from "./ui/dialog";
+
+const LIGHTBOX_IMAGE_WIDTH = 1800;
+const LIGHTBOX_IMAGE_QUALITY = 85;
+
+function lightboxImageUrl(photo: Photo) {
+  return urlFor(photo.image).width(LIGHTBOX_IMAGE_WIDTH).quality(LIGHTBOX_IMAGE_QUALITY).url();
+}
 
 /** DESIGN.md §5: "NIKON Z8 · 85MM · ƒ1.4 · 1/200" — mono, only the fields actually present. */
 function formatCapture(capture: Photo["capture"]) {
@@ -43,7 +50,7 @@ function LightboxImage({ photo }: { photo: Photo }) {
     <div className="relative w-full flex-1 overflow-hidden">
       {loading ? <Spinner /> : null}
       <Image
-        src={urlFor(photo.image).width(1800).quality(85).url()}
+        src={lightboxImageUrl(photo)}
         alt={photo.image.alt ?? ""}
         fill
         sizes="100vw"
@@ -52,6 +59,43 @@ function LightboxImage({ photo }: { photo: Photo }) {
         priority
       />
     </div>
+  );
+}
+
+/**
+ * Photos are this site's primary content, not an incidental gallery — per
+ * explicit direction, every photo's full-size lightbox image is preloaded
+ * up front (all of them, not just the open one or its neighbors) rather
+ * than only starting to fetch on navigation, even at the cost of a heavier
+ * initial page load. `getImageProps` is Next's documented API for exactly
+ * this: computing the props next/image would use without mounting a
+ * component, so these <link rel="preload"> hints carry the *same*
+ * srcSet/URL LightboxImage requests later and the browser serves it from
+ * cache instead of refetching. React hoists <link> tags rendered anywhere
+ * in the tree into <head> automatically.
+ */
+function LightboxPreloadLinks({ photos }: { photos: Photo[] }) {
+  return (
+    <>
+      {photos.map((photo) => {
+        const { props } = getImageProps({
+          src: lightboxImageUrl(photo),
+          alt: "",
+          fill: true,
+          sizes: "100vw",
+        });
+        return (
+          <link
+            key={photo._id}
+            rel="preload"
+            as="image"
+            href={props.src}
+            imageSrcSet={props.srcSet}
+            imageSizes={props.sizes}
+          />
+        );
+      })}
+    </>
   );
 }
 
@@ -75,10 +119,13 @@ function LightboxImage({ photo }: { photo: Photo }) {
  * it can open but render off-screen or zero-sized if `100dvh` is computed
  * against a stale viewport at the moment of opening).
  *
- * Switching between photos shows a spinner (LightboxImage, below) instead
+ * Switching between photos shows a spinner (LightboxImage, above) instead
  * of next/image's usual blur-up placeholder — the LQIP blur-then-sharpen
  * swap reads fine for a first paint, but felt like a flicker when it
- * replayed on every single prev/next inside an already-open lightbox.
+ * replayed on every single prev/next inside an already-open lightbox. With
+ * LightboxPreloadLinks warming the cache, the spinner should rarely be
+ * visible in practice — it stays as the fallback for whatever hasn't
+ * finished preloading yet.
  */
 export function PhotoGallery({ photos }: { photos: Photo[] }) {
   const [category, setCategory] = useState<Category | undefined>();
@@ -105,6 +152,7 @@ export function PhotoGallery({ photos }: { photos: Photo[] }) {
 
   return (
     <>
+      <LightboxPreloadLinks photos={photos} />
       <CategoryFilter active={category} onSelect={handleCategoryChange} />
       <JustifiedGrid photos={filtered} onPhotoClick={setIndex} />
 

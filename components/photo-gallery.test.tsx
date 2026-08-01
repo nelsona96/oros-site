@@ -138,4 +138,12 @@ describe("PhotoGallery", () => {
     expect(screen.getAllByRole("img")).toHaveLength(1);
     expect(screen.getByAltText("Photo p3")).toBeInTheDocument();
   });
+
+  it("preloads every photo's full-size image up front, unfiltered", () => {
+    render(<PhotoGallery photos={photos} />);
+    fireEvent.click(screen.getByRole("button", { name: "Ministry" }));
+
+    const preloadLinks = document.head.querySelectorAll('link[rel="preload"][as="image"]');
+    expect(preloadLinks).toHaveLength(photos.length);
+  });
 });

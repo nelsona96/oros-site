@@ -162,6 +162,28 @@
   background-image: var(--scrim);
 }
 
+/*
+ * Hero sunrise warm-up (docs/DESIGN.md §3, device 1) — a projector-lamp
+ * brightening, amber strongest at the edges before settling. Gated to
+ * once-per-session and skipped under reduced motion by components/hero-warmup.tsx;
+ * the keyframes just define the curve.
+ */
+@theme {
+  --animate-sunrise: sunrise 2.4s ease-out forwards;
+}
+
+@keyframes sunrise {
+  0% {
+    opacity: 0;
+  }
+  25% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

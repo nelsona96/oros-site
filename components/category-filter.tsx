@@ -3,7 +3,7 @@
 import { CATEGORIES, type Category } from "@/lib/sanity/types";
 
 const BUTTON_CLASSES =
-  "cursor-pointer font-mono text-xs tracking-widest uppercase outline-none transition-colors rounded-control focus-visible:ring-2 ring-focus-ring";
+  "cursor-pointer touch-manipulation font-mono text-xs tracking-widest uppercase outline-none transition-colors rounded-control focus-visible:ring-2 ring-focus-ring";
 
 /**
  * DESIGN.md §6: "No category icons on the services block" — same rule

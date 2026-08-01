@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { Photo } from "@/lib/sanity/types";
 
@@ -102,6 +102,31 @@ describe("PhotoGallery", () => {
     fireEvent.click(screen.getByAltText("Photo p1"));
     fireEvent.click(screen.getByRole("button", { name: "Close" }));
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("shows a spinner while the full-size photo loads, then fades it in once loaded", async () => {
+    render(<PhotoGallery photos={photos} />);
+    fireEvent.click(screen.getByAltText("Photo p1"));
+
+    expect(screen.getByRole("status")).toBeInTheDocument();
+    const image = screen.getByRole("dialog").querySelector("img")!;
+    expect(image).toHaveClass("opacity-0");
+
+    // next/image defers onLoad behind an img.decode() microtask, so the
+    // resulting state update lands a tick after the native load event.
+    fireEvent.load(image);
+    await waitFor(() => expect(screen.queryByRole("status")).not.toBeInTheDocument());
+    expect(image).toHaveClass("opacity-100");
+  });
+
+  it("shows the spinner again after navigating to a new photo", async () => {
+    render(<PhotoGallery photos={photos} />);
+    fireEvent.click(screen.getByAltText("Photo p1"));
+    fireEvent.load(screen.getByRole("dialog").querySelector("img")!);
+    await waitFor(() => expect(screen.queryByRole("status")).not.toBeInTheDocument());
+
+    fireEvent.click(screen.getByRole("button", { name: "Next photo" }));
+    expect(screen.getByRole("status")).toBeInTheDocument();
   });
 
   it("filters the grid by category", () => {

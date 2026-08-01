@@ -19,6 +19,42 @@ function formatCapture(capture: Photo["capture"]) {
 
 const SWIPE_THRESHOLD_PX = 50;
 
+/** A ring-only spinner, not another lucide icon — DESIGN.md §6 enumerates the whole site's icon set and this isn't in it. */
+function Spinner() {
+  return (
+    <div role="status" className="absolute inset-0 flex items-center justify-center">
+      <div className="h-8 w-8 animate-spin rounded-full border-2 border-text-secondary/30 border-t-text-accent" />
+      <span className="sr-only">Loading photo…</span>
+    </div>
+  );
+}
+
+/**
+ * Its own component, rendered with `key={photo._id}` by the caller, so
+ * switching photos remounts it fresh with `loading` back to `true` — no
+ * effect needed to "reset state when a prop changes" (the React-docs
+ * anti-pattern this sidesteps: resetting via an effect causes an extra
+ * render and is exactly what a `key` change is for).
+ */
+function LightboxImage({ photo }: { photo: Photo }) {
+  const [loading, setLoading] = useState(true);
+
+  return (
+    <div className="relative w-full flex-1 overflow-hidden">
+      {loading ? <Spinner /> : null}
+      <Image
+        src={urlFor(photo.image).width(1800).quality(85).url()}
+        alt={photo.image.alt ?? ""}
+        fill
+        sizes="100vw"
+        onLoad={() => setLoading(false)}
+        className={`object-contain transition-opacity duration-200 ${loading ? "opacity-0" : "opacity-100"}`}
+        priority
+      />
+    </div>
+  );
+}
+
 /**
  * Owns category filtering and the lightbox's open/index state.
  *
@@ -38,6 +74,11 @@ const SWIPE_THRESHOLD_PX = 50;
  * browsers (the class of bug behind "the lightbox doesn't seem to open" —
  * it can open but render off-screen or zero-sized if `100dvh` is computed
  * against a stale viewport at the moment of opening).
+ *
+ * Switching between photos shows a spinner (LightboxImage, below) instead
+ * of next/image's usual blur-up placeholder — the LQIP blur-then-sharpen
+ * swap reads fine for a first paint, but felt like a flicker when it
+ * replayed on every single prev/next inside an already-open lightbox.
  */
 export function PhotoGallery({ photos }: { photos: Photo[] }) {
   const [category, setCategory] = useState<Category | undefined>();
@@ -95,26 +136,14 @@ export function PhotoGallery({ photos }: { photos: Photo[] }) {
                   <button
                     type="button"
                     aria-label="Close"
-                    className="ring-focus-ring rounded-control absolute top-2 right-2 z-10 cursor-pointer p-3 text-text-primary outline-none transition-opacity hover:text-text-accent focus-visible:ring-2"
+                    className="ring-focus-ring rounded-control touch-manipulation absolute top-2 right-2 z-10 cursor-pointer p-3 text-text-primary outline-none transition-opacity hover:text-text-accent focus-visible:ring-2"
                   />
                 }
               >
                 <Icon icon={X} size={24} />
               </DialogClose>
 
-              <div className="relative w-full flex-1 overflow-hidden">
-                <Image
-                  key={active._id}
-                  src={urlFor(active.image).width(1800).quality(85).url()}
-                  alt={active.image.alt ?? ""}
-                  fill
-                  sizes="100vw"
-                  placeholder="blur"
-                  blurDataURL={active.image.asset.metadata.lqip}
-                  className="object-contain"
-                  priority
-                />
-              </div>
+              <LightboxImage key={active._id} photo={active} />
 
               {active.caption || formatCapture(active.capture) ? (
                 <div className="flex w-full max-w-3xl flex-col items-center gap-1 text-center">
@@ -133,7 +162,7 @@ export function PhotoGallery({ photos }: { photos: Photo[] }) {
                   aria-label="Previous photo"
                   disabled={index === 0}
                   onClick={goPrev}
-                  className="ring-focus-ring rounded-control cursor-pointer p-3 text-text-primary outline-none transition-opacity hover:text-text-accent focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-0"
+                  className="ring-focus-ring rounded-control touch-manipulation cursor-pointer p-3 text-text-primary outline-none transition-opacity hover:text-text-accent focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-0"
                 >
                   <Icon icon={ChevronLeft} size={28} />
                 </button>
@@ -142,7 +171,7 @@ export function PhotoGallery({ photos }: { photos: Photo[] }) {
                   aria-label="Next photo"
                   disabled={index === filtered.length - 1}
                   onClick={goNext}
-                  className="ring-focus-ring rounded-control cursor-pointer p-3 text-text-primary outline-none transition-opacity hover:text-text-accent focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-0"
+                  className="ring-focus-ring rounded-control touch-manipulation cursor-pointer p-3 text-text-primary outline-none transition-opacity hover:text-text-accent focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-0"
                 >
                   <Icon icon={ChevronRight} size={28} />
                 </button>

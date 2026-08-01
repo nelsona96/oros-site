@@ -34,6 +34,12 @@ const FILLER_COUNT = 5;
  * Left/Right additionally rove focus directly between photos — sequential
  * Tab still works, but stepping through a wall of images one Tab at a time
  * is a slog, and arrow keys are the expected pattern for a grid of peers.
+ *
+ * The focus ring is a normal (outset) ring, not `ring-inset`: an inset
+ * box-shadow paints with the button's own background, which is a step that
+ * happens *before* its children paint — so it was rendering underneath the
+ * full-bleed photo and never actually visible. An outset ring draws outside
+ * the box entirely, clear of the image regardless of paint order.
  */
 export function JustifiedGrid({
   photos,
@@ -67,7 +73,7 @@ export function JustifiedGrid({
                 buttonRefs.current[index - 1]?.focus();
               }
             }}
-            className="ring-focus-ring relative min-w-0 cursor-pointer outline-none focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-inset"
+            className="ring-focus-ring touch-manipulation relative min-w-0 cursor-pointer outline-none focus-visible:z-10 focus-visible:ring-2"
             style={{
               flexGrow: aspectRatio,
               flexBasis: `calc(var(--row-h) * ${aspectRatio})`,

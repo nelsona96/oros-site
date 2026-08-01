@@ -1,0 +1,11 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-display: var(--font-instrument-serif);
+  --font-body: var(--font-instrument-sans);
+  --font-mono: var(--font-ibm-plex-mono);
+}
+
+body {
+  font-family: var(--font-body), sans-serif;
+}

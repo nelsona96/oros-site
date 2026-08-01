@@ -1,11 +1,106 @@
 @import "tailwindcss";
+@import "@radix-ui/colors/sand-dark.css";
+@import "@radix-ui/colors/sand-dark-alpha.css";
+@import "@radix-ui/colors/gold-dark.css";
+@import "@radix-ui/colors/gold-dark-alpha.css";
+@import "@radix-ui/colors/amber-dark.css";
+@import "@radix-ui/colors/black-alpha.css";
+
+/*
+ * Semantic aliases — see docs/DESIGN.md §4. Components reference these,
+ * never the raw Sand/Gold/Amber scale steps directly.
+ */
+:root {
+  /* Backgrounds (steps 1–2) */
+  --app-bg: var(--sand-1);
+  --app-bg-subtle: var(--sand-2);
+  --surface: var(--gold-2);
+  --surface-hover: var(--gold-3);
+
+  /* Component backgrounds (steps 3–5) */
+  --component-bg: var(--sand-3);
+  --component-bg-hover: var(--sand-4);
+  --component-bg-active: var(--sand-5);
+  --component-accent-bg: var(--gold-3);
+  --component-accent-bg-hover: var(--gold-4);
+  --component-accent-bg-active: var(--gold-5);
+
+  /* Borders (steps 6–8) */
+  --border-subtle: var(--sand-6);
+  --border-interactive: var(--sand-7);
+  --border-strong: var(--sand-8);
+  --rule-ridgeline: var(--gold-6);
+  --rule-ridgeline-strong: var(--gold-7);
+
+  /* Solid backgrounds (steps 9–10) */
+  --accent-solid: var(--gold-9);
+  --accent-solid-hover: var(--gold-10);
+  --light-solid: var(--amber-9);
+  --light-solid-hover: var(--amber-10);
+
+  /* Text (steps 11–12) */
+  --text-primary: var(--sand-12);
+  --text-secondary: var(--sand-11);
+  --text-accent: var(--gold-11);
+  --text-accent-strong: var(--gold-12);
+  --text-light: var(--amber-11);
+  --text-on-accent-solid: white;
+  --text-on-light-solid: var(--sand-1);
+
+  /* Alpha & overlays */
+  --scrim: linear-gradient(to top, var(--black-a11), transparent);
+  --overlay: var(--black-a9);
+  --focus-ring: var(--amber-9);
+}
 
 @theme inline {
   --font-display: var(--font-instrument-serif);
   --font-body: var(--font-instrument-sans);
   --font-mono: var(--font-ibm-plex-mono);
+
+  --color-app-bg: var(--app-bg);
+  --color-app-bg-subtle: var(--app-bg-subtle);
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
+
+  --color-component: var(--component-bg);
+  --color-component-hover: var(--component-bg-hover);
+  --color-component-active: var(--component-bg-active);
+  --color-component-accent: var(--component-accent-bg);
+  --color-component-accent-hover: var(--component-accent-bg-hover);
+  --color-component-accent-active: var(--component-accent-bg-active);
+
+  --color-border: var(--border-subtle);
+  --color-border-interactive: var(--border-interactive);
+  --color-border-strong: var(--border-strong);
+  --color-ridgeline: var(--rule-ridgeline);
+  --color-ridgeline-strong: var(--rule-ridgeline-strong);
+
+  --color-accent-solid: var(--accent-solid);
+  --color-accent-solid-hover: var(--accent-solid-hover);
+  --color-light-solid: var(--light-solid);
+  --color-light-solid-hover: var(--light-solid-hover);
+
+  --color-primary: var(--text-primary);
+  --color-secondary: var(--text-secondary);
+  --color-accent: var(--text-accent);
+  --color-accent-strong: var(--text-accent-strong);
+  --color-light: var(--text-light);
+  --color-on-accent-solid: var(--text-on-accent-solid);
+  --color-on-light-solid: var(--text-on-light-solid);
+
+  --color-overlay: var(--overlay);
+  --color-focus-ring: var(--focus-ring);
+
+  --radius-control: 2px;
 }
 
 body {
+  background-color: var(--app-bg);
+  color: var(--text-primary);
   font-family: var(--font-body), sans-serif;
+}
+
+.scrim {
+  background-image: var(--scrim);
 }

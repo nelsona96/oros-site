@@ -16,6 +16,8 @@
     "@base-ui/react": "^1.6.0",
     "@radix-ui/colors": "^3.0.0",
     "@sanity/client": "^7.26.0",
+    "@sanity/image-url": "^2.1.1",
+    "@sanity/webhook": "^4.0.4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dotenv": "^17.4.2",

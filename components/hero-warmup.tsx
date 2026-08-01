@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, type ReactNode } from "react";
+import { useLayoutEffect, useRef, type ReactNode } from "react";
 
 const SESSION_KEY = "oros-hero-warmup";
 
@@ -21,13 +21,21 @@ const SESSION_KEY = "oros-hero-warmup";
  * Both layers always render (SSR-safe, no hydration mismatch); the effect
  * toggles the animation classes imperatively via refs rather than React
  * state, since this is a one-time sync with browser-only APIs, not state
- * that should trigger a re-render.
+ * that should trigger a re-render. useLayoutEffect (not useEffect) so the
+ * class lands before the browser's next paint — otherwise there's a visible
+ * frame of the fully-bright video between hydration and the effect running.
+ * This can't close the gap *before* hydration (the server has no way to know
+ * session/reduced-motion state without a cookie + middleware, which would
+ * make this static route dynamic and fight the caching model in
+ * docs/SPEC.md §7 for a sub-second cosmetic detail) — on a slow connection
+ * there's still a brief flash of the plain video while JS loads. Accepted
+ * tradeoff for an MVP.
  */
 export function HeroWarmup({ children }: { children: ReactNode }) {
   const mediaRef = useRef<HTMLDivElement>(null);
   const glowRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reduced || sessionStorage.getItem(SESSION_KEY)) return;
 

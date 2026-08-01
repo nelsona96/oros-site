@@ -182,7 +182,7 @@
   0% {
     opacity: 0;
   }
-  25% {
+  35% {
     opacity: 0.4;
   }
   100% {
@@ -193,9 +193,6 @@
 @keyframes sunrise-media {
   0% {
     filter: brightness(0.72) saturate(0.8);
-  }
-  55% {
-    filter: brightness(0.94) saturate(0.95);
   }
   100% {
     filter: none;

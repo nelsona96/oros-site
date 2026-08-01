@@ -104,29 +104,43 @@ describe("PhotoGallery", () => {
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
+  // Every photo in the filtered set mounts as its own persistent layer once
+  // the dialog opens (see LightboxPhotoLayer) — only one is ever the active,
+  // visible one at a time, marked aria-hidden="false" (the rest true).
+  function activeImage() {
+    return screen.getByRole("dialog").querySelector('img[aria-hidden="false"]')!;
+  }
+
   it("shows a spinner while the full-size photo loads, then fades it in once loaded", async () => {
     render(<PhotoGallery photos={photos} />);
     fireEvent.click(screen.getByAltText("Photo p1"));
 
     expect(screen.getByRole("status")).toBeInTheDocument();
-    const image = screen.getByRole("dialog").querySelector("img")!;
-    expect(image).toHaveClass("opacity-0");
+    expect(activeImage()).toHaveClass("opacity-0");
 
     // next/image defers onLoad behind an img.decode() microtask, so the
     // resulting state update lands a tick after the native load event.
-    fireEvent.load(image);
+    fireEvent.load(activeImage());
     await waitFor(() => expect(screen.queryByRole("status")).not.toBeInTheDocument());
-    expect(image).toHaveClass("opacity-100");
+    expect(activeImage()).toHaveClass("opacity-100");
   });
 
-  it("shows the spinner again after navigating to a new photo", async () => {
+  it("shows the spinner again after navigating to a photo that hasn't loaded yet, but not for one already loaded", async () => {
     render(<PhotoGallery photos={photos} />);
     fireEvent.click(screen.getByAltText("Photo p1"));
-    fireEvent.load(screen.getByRole("dialog").querySelector("img")!);
+    fireEvent.load(activeImage());
     await waitFor(() => expect(screen.queryByRole("status")).not.toBeInTheDocument());
 
     fireEvent.click(screen.getByRole("button", { name: "Next photo" }));
     expect(screen.getByRole("status")).toBeInTheDocument();
+    fireEvent.load(activeImage());
+    await waitFor(() => expect(screen.queryByRole("status")).not.toBeInTheDocument());
+
+    // Navigating back to p1 — already loaded once, never remounted — should
+    // not show the spinner again.
+    fireEvent.click(screen.getByRole("button", { name: "Previous photo" }));
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    expect(activeImage()).toHaveClass("opacity-100");
   });
 
   it("filters the grid by category", () => {

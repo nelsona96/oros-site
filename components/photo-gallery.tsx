@@ -37,28 +37,40 @@ function Spinner() {
 }
 
 /**
- * Its own component, rendered with `key={photo._id}` by the caller, so
- * switching photos remounts it fresh with `loading` back to `true` — no
- * effect needed to "reset state when a prop changes" (the React-docs
- * anti-pattern this sidesteps: resetting via an effect causes an extra
- * render and is exactly what a `key` change is for).
+ * One persistent layer per photo, stacked and cross-faded by opacity —
+ * never remounted by navigation. A `key`-remount-per-active-photo approach
+ * (what this replaces) resets React state on every prev/next, so even a
+ * photo the browser had fully cached still had to redo its onLoad/decode
+ * microtask from scratch — a spinner flash on *every* navigation,
+ * including revisiting a photo you'd already viewed a second ago. Here,
+ * `loaded` is set once per photo and never reset, because the component
+ * instance itself never goes away for the life of the open lightbox —
+ * only its opacity toggles. First view of a given photo may show the
+ * spinner briefly if it hasn't finished loading; every view after that is
+ * instant.
  */
-function LightboxImage({ photo }: { photo: Photo }) {
-  const [loading, setLoading] = useState(true);
+function LightboxPhotoLayer({ photo, active }: { photo: Photo; active: boolean }) {
+  const [loaded, setLoaded] = useState(false);
 
   return (
-    <div className="relative w-full flex-1 overflow-hidden">
-      {loading ? <Spinner /> : null}
+    <>
       <Image
         src={lightboxImageUrl(photo)}
         alt={photo.image.alt ?? ""}
         fill
         sizes="100vw"
-        onLoad={() => setLoading(false)}
-        className={`object-contain transition-opacity duration-200 ${loading ? "opacity-0" : "opacity-100"}`}
-        priority
+        preload
+        onLoad={() => setLoaded(true)}
+        aria-hidden={!active}
+        className={`absolute inset-0 object-contain transition-opacity duration-200 ${
+          active && loaded ? "opacity-100" : "opacity-0"
+        } ${active ? "" : "pointer-events-none"}`}
       />
-    </div>
+      {/* After the Image in DOM order, not before — an inactive/still-loading
+          layer's Spinner must paint on top of its own (invisible but still
+          box-occupying) image, not underneath it. */}
+      {active && !loaded ? <Spinner /> : null}
+    </>
   );
 }
 
@@ -70,9 +82,9 @@ function LightboxImage({ photo }: { photo: Photo }) {
  * initial page load. `getImageProps` is Next's documented API for exactly
  * this: computing the props next/image would use without mounting a
  * component, so these <link rel="preload"> hints carry the *same*
- * srcSet/URL LightboxImage requests later and the browser serves it from
- * cache instead of refetching. React hoists <link> tags rendered anywhere
- * in the tree into <head> automatically.
+ * srcSet/URL LightboxPhotoLayer requests later and the browser serves it
+ * from cache instead of refetching. React hoists <link> tags rendered
+ * anywhere in the tree into <head> automatically.
  */
 function LightboxPreloadLinks({ photos }: { photos: Photo[] }) {
   return (
@@ -119,13 +131,10 @@ function LightboxPreloadLinks({ photos }: { photos: Photo[] }) {
  * it can open but render off-screen or zero-sized if `100dvh` is computed
  * against a stale viewport at the moment of opening).
  *
- * Switching between photos shows a spinner (LightboxImage, above) instead
- * of next/image's usual blur-up placeholder — the LQIP blur-then-sharpen
- * swap reads fine for a first paint, but felt like a flicker when it
- * replayed on every single prev/next inside an already-open lightbox. With
- * LightboxPreloadLinks warming the cache, the spinner should rarely be
- * visible in practice — it stays as the fallback for whatever hasn't
- * finished preloading yet.
+ * All of `filtered`'s photos mount as stacked LightboxPhotoLayers once the
+ * dialog first opens (see the comment there for why) — combined with
+ * LightboxPreloadLinks warming the network cache from page load, prev/next
+ * inside an open lightbox should read as instant in practice.
  */
 export function PhotoGallery({ photos }: { photos: Photo[] }) {
   const [category, setCategory] = useState<Category | undefined>();
@@ -191,7 +200,11 @@ export function PhotoGallery({ photos }: { photos: Photo[] }) {
                 <Icon icon={X} size={24} />
               </DialogClose>
 
-              <LightboxImage key={active._id} photo={active} />
+              <div className="relative w-full flex-1 overflow-hidden">
+                {filtered.map((photo, i) => (
+                  <LightboxPhotoLayer key={photo._id} photo={photo} active={i === index} />
+                ))}
+              </div>
 
               {active.caption || formatCapture(active.capture) ? (
                 <div className="flex w-full max-w-3xl flex-col items-center gap-1 text-center">

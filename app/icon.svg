@@ -1,0 +1,12 @@
+<svg viewBox="0 0 48 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- #978365 = Radix gold-9 (--accent-solid). Favicons render outside any
+       page CSS context, so this is the one place a token value is hardcoded
+       rather than referenced — see docs/DESIGN.md §4. -->
+  <path
+    d="M2 28 L14 10 L20 18 L34 4 L46 28"
+    stroke="#978365"
+    stroke-width="2.5"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+</svg>

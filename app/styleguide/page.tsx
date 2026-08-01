@@ -1,5 +1,10 @@
 import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { Container } from "@/components/container";
+import { Section } from "@/components/section";
+import { Display, Eyebrow } from "@/components/typography";
+import { Ridgeline } from "@/components/ridgeline";
+import { RidgelineMark } from "@/components/ridgeline-mark";
 
 type Swatch = { label: string; cssVar: string; className: string };
 
@@ -33,7 +38,7 @@ const borders: Swatch[] = [
   { label: "border-strong", cssVar: "--border-strong", className: "border-border-strong" },
 ];
 
-const ridgeline: Swatch[] = [
+const ridgelineTokens: Swatch[] = [
   { label: "ridgeline", cssVar: "--rule-ridgeline", className: "bg-ridgeline" },
   { label: "ridgeline-strong", cssVar: "--rule-ridgeline-strong", className: "bg-ridgeline-strong" },
 ];
@@ -79,123 +84,151 @@ export default function StyleguidePage() {
   }
 
   return (
-    <main className="bg-app-bg text-text-primary min-h-screen space-y-16 px-8 py-16">
-      <header>
-        <p className="font-mono text-xs tracking-widest text-text-secondary uppercase">
-          Dev only — docs/DESIGN.md §4 &amp; §5
-        </p>
-        <h1 className="font-display text-5xl">Styleguide</h1>
-      </header>
+    <div className="bg-app-bg text-text-primary min-h-screen">
+      <Container className="space-y-16 py-16">
+        <header>
+          <Eyebrow>Dev only — docs/DESIGN.md §3, §4 &amp; §5</Eyebrow>
+          <Display className="text-5xl">Styleguide</Display>
+        </header>
 
-      <Section title="Backgrounds & surfaces">
-        <SwatchRow swatches={backgrounds} />
-      </Section>
+        <Block title="Ridgeline mark">
+          <div className="flex flex-wrap items-center gap-8">
+            <RidgelineMark className="text-text-primary h-8 w-auto" />
+            <RidgelineMark className="text-text-accent h-12 w-auto" />
+            <RidgelineMark className="text-text-light h-16 w-auto" />
+          </div>
+        </Block>
 
-      <Section title="Component states">
-        <SwatchRow swatches={componentStates} />
-      </Section>
+        <Block title="Backgrounds & surfaces">
+          <SwatchRow swatches={backgrounds} />
+        </Block>
 
-      <Section title="Borders">
-        <div className="flex flex-wrap gap-6">
-          {borders.map((b) => (
-            <div key={b.label} className="space-y-2">
-              <div className={`h-16 w-32 border-2 ${b.className}`} />
-              <Label swatch={b} />
-            </div>
-          ))}
-        </div>
-      </Section>
+        <Block title="Component states">
+          <SwatchRow swatches={componentStates} />
+        </Block>
 
-      <Section title="Ridgeline dividers">
-        <div className="max-w-md space-y-6">
-          {ridgeline.map((r) => (
-            <div key={r.label} className="space-y-2">
-              <div className={`h-px w-full ${r.className}`} />
-              <Label swatch={r} />
-            </div>
-          ))}
-        </div>
-      </Section>
-
-      <Section title="Solid backgrounds">
-        <div className="flex flex-wrap gap-6">
-          {solids.map((s) => (
-            <div key={s.label} className="space-y-2">
-              <div
-                className={`flex h-16 w-32 items-center justify-center rounded-control ${s.className} ${s.textClassName}`}
-              >
-                <span className="font-mono text-xs">Aa</span>
+        <Block title="Borders">
+          <div className="flex flex-wrap gap-6">
+            {borders.map((b) => (
+              <div key={b.label} className="space-y-2">
+                <div className={`h-16 w-32 border-2 ${b.className}`} />
+                <Label swatch={b} />
               </div>
-              <Label swatch={s} />
-            </div>
-          ))}
-        </div>
-      </Section>
-
-      <Section title="Text">
-        <div className="space-y-3">
-          {textTokens.map((t) => (
-            <div key={t.label} className="flex items-baseline gap-4">
-              <span className={`font-body text-lg ${t.className}`}>The quick brown fox</span>
-              <Label swatch={t} />
-            </div>
-          ))}
-        </div>
-      </Section>
-
-      <Section title="Overlay & focus ring">
-        <div className="flex flex-wrap items-center gap-8">
-          <div className="space-y-2">
-            <div className="bg-overlay h-16 w-32 rounded-control" />
-            <Label swatch={{ label: "overlay", cssVar: "--overlay", className: "bg-overlay" }} />
+            ))}
           </div>
-          <div className="space-y-2">
-            <div className="bg-component h-16 w-32 rounded-control ring-2 ring-focus-ring ring-offset-2 ring-offset-app-bg" />
-            <Label swatch={{ label: "focus-ring", cssVar: "--focus-ring", className: "ring-focus-ring" }} />
+        </Block>
+
+        <Block title="Ridgeline dividers">
+          <div className="max-w-md space-y-6">
+            {ridgelineTokens.map((r) => (
+              <div key={r.label} className="space-y-2">
+                <div className={`h-px w-full ${r.className}`} />
+                <Label swatch={r} />
+              </div>
+            ))}
           </div>
-        </div>
-      </Section>
+          <div className="max-w-md space-y-2 pt-4">
+            <Ridgeline />
+            <p className="font-mono text-text-secondary text-xs">
+              The composed signature divider — gold-6 with an amber-9 glow at one point
+            </p>
+          </div>
+        </Block>
 
-      <Section title="Scrim">
-        <div className="scrim relative h-40 w-64 rounded-control bg-component-accent">
-          <p className="absolute right-3 bottom-3 left-3 font-mono text-xs text-text-primary uppercase">
-            Type over photograph
-          </p>
-        </div>
-      </Section>
+        <Block title="Solid backgrounds">
+          <div className="flex flex-wrap gap-6">
+            {solids.map((s) => (
+              <div key={s.label} className="space-y-2">
+                <div
+                  className={`flex h-16 w-32 items-center justify-center rounded-control ${s.className} ${s.textClassName}`}
+                >
+                  <span className="font-mono text-xs">Aa</span>
+                </div>
+                <Label swatch={s} />
+              </div>
+            ))}
+          </div>
+        </Block>
 
-      <Section title="Type scale">
-        <div className="space-y-6">
-          <p className="font-display text-5xl">Scaling new heights in cinematic storytelling.</p>
-          <p className="font-body max-w-prose text-text-secondary">
-            Oros Productions is a photography and videography studio working across weddings,
-            commercial work, portraiture, and ministry film.
-          </p>
-          <p className="font-mono text-xs tracking-widest text-text-accent uppercase">
-            NIKON Z8 · 85MM · ƒ1.4 · 1/200
-          </p>
-        </div>
-      </Section>
+        <Block title="Text">
+          <div className="space-y-3">
+            {textTokens.map((t) => (
+              <div key={t.label} className="flex items-baseline gap-4">
+                <span className={`font-body text-lg ${t.className}`}>The quick brown fox</span>
+                <Label swatch={t} />
+              </div>
+            ))}
+          </div>
+        </Block>
 
-      <Section title="shadcn + Base UI bridge">
-        <div className="flex flex-wrap items-center gap-4">
-          <Button>Default</Button>
-          <Button variant="outline">Outline</Button>
-          <Button variant="secondary">Secondary</Button>
-          <Button variant="ghost">Ghost</Button>
-          <Button variant="destructive">Destructive</Button>
-        </div>
-      </Section>
-    </main>
+        <Block title="Overlay & focus ring">
+          <div className="flex flex-wrap items-center gap-8">
+            <div className="space-y-2">
+              <div className="bg-overlay h-16 w-32 rounded-control" />
+              <Label swatch={{ label: "overlay", cssVar: "--overlay", className: "bg-overlay" }} />
+            </div>
+            <div className="space-y-2">
+              <div className="bg-component ring-focus-ring ring-offset-app-bg h-16 w-32 rounded-control ring-2 ring-offset-2" />
+              <Label swatch={{ label: "focus-ring", cssVar: "--focus-ring", className: "ring-focus-ring" }} />
+            </div>
+          </div>
+        </Block>
+
+        <Block title="Scrim">
+          <div className="scrim bg-component-accent relative h-40 w-64 rounded-control">
+            <p className="text-text-primary absolute right-3 bottom-3 left-3 font-mono text-xs uppercase">
+              Type over photograph
+            </p>
+          </div>
+        </Block>
+
+        <Block title="Typography components">
+          <div className="space-y-6">
+            <div>
+              <Eyebrow>Display</Eyebrow>
+              <Display className="text-5xl">Scaling new heights in cinematic storytelling.</Display>
+            </div>
+            <p className="font-body text-text-secondary max-w-prose">
+              Oros Productions is a photography and videography studio working across weddings,
+              commercial work, portraiture, and ministry film.
+            </p>
+            <p className="text-text-accent font-mono text-xs tracking-widest uppercase">
+              NIKON Z8 · 85MM · ƒ1.4 · 1/200
+            </p>
+          </div>
+        </Block>
+
+        <Block title="Container">
+          <div className="border-border border">
+            <Container className="border-border border-x border-dashed py-4">
+              <p className="font-mono text-text-secondary text-xs">max-w-6xl, this content column</p>
+            </Container>
+          </div>
+        </Block>
+
+        <Block title="shadcn + Base UI bridge">
+          <div className="flex flex-wrap items-center gap-4">
+            <Button>Default</Button>
+            <Button variant="outline">Outline</Button>
+            <Button variant="secondary">Secondary</Button>
+            <Button variant="ghost">Ghost</Button>
+            <Button variant="destructive">Destructive</Button>
+          </div>
+        </Block>
+      </Container>
+    </div>
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+/** A titled block for this page's own layout — not the Section primitive. */
+function Block({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="space-y-4">
-      <h2 className="font-mono text-sm tracking-widest text-text-accent uppercase">{title}</h2>
+    <Section className="space-y-4 py-0">
+      <Eyebrow as="h2" className="text-sm">
+        {title}
+      </Eyebrow>
       {children}
-    </section>
+    </Section>
   );
 }
 
@@ -214,7 +247,7 @@ function SwatchRow({ swatches }: { swatches: Swatch[] }) {
 
 function Label({ swatch }: { swatch: Swatch }) {
   return (
-    <p className="font-mono text-xs text-text-secondary">
+    <p className="font-mono text-text-secondary text-xs">
       <span className="block">{swatch.label}</span>
       <span className="block">{swatch.cssVar}</span>
     </p>

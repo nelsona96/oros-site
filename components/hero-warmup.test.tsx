@@ -1,4 +1,4 @@
-import { render } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { HeroWarmup } from "./hero-warmup";
 
@@ -18,24 +18,52 @@ afterEach(() => {
 });
 
 describe("HeroWarmup", () => {
-  it("plays and marks the session on first mount", () => {
+  it("renders its children", () => {
     mockMatchMedia(false);
-    const { container } = render(<HeroWarmup />);
-    expect(container.firstChild).toHaveClass("animate-sunrise");
+    render(
+      <HeroWarmup>
+        <p>hero media</p>
+      </HeroWarmup>,
+    );
+    expect(screen.getByText("hero media")).toBeInTheDocument();
+  });
+
+  it("plays the media and glow animation and marks the session on first mount", () => {
+    mockMatchMedia(false);
+    const { container } = render(
+      <HeroWarmup>
+        <p>hero media</p>
+      </HeroWarmup>,
+    );
+    const [mediaLayer, glowLayer] = container.querySelectorAll(":scope > div");
+    expect(mediaLayer).toHaveClass("animate-sunrise-media");
+    expect(glowLayer).toHaveClass("animate-sunrise-glow");
     expect(sessionStorage.getItem(SESSION_KEY)).toBe("1");
   });
 
   it("does not play again once the session is marked", () => {
     mockMatchMedia(false);
     sessionStorage.setItem(SESSION_KEY, "1");
-    const { container } = render(<HeroWarmup />);
-    expect(container.firstChild).not.toHaveClass("animate-sunrise");
+    const { container } = render(
+      <HeroWarmup>
+        <p>hero media</p>
+      </HeroWarmup>,
+    );
+    const [mediaLayer, glowLayer] = container.querySelectorAll(":scope > div");
+    expect(mediaLayer).not.toHaveClass("animate-sunrise-media");
+    expect(glowLayer).not.toHaveClass("animate-sunrise-glow");
   });
 
   it("never plays under prefers-reduced-motion, and does not mark the session", () => {
     mockMatchMedia(true);
-    const { container } = render(<HeroWarmup />);
-    expect(container.firstChild).not.toHaveClass("animate-sunrise");
+    const { container } = render(
+      <HeroWarmup>
+        <p>hero media</p>
+      </HeroWarmup>,
+    );
+    const [mediaLayer, glowLayer] = container.querySelectorAll(":scope > div");
+    expect(mediaLayer).not.toHaveClass("animate-sunrise-media");
+    expect(glowLayer).not.toHaveClass("animate-sunrise-glow");
     expect(sessionStorage.getItem(SESSION_KEY)).toBeNull();
   });
 });

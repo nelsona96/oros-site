@@ -164,15 +164,21 @@
 
 /*
  * Hero sunrise warm-up (docs/DESIGN.md §3, device 1) — a projector-lamp
- * brightening, amber strongest at the edges before settling. Gated to
- * once-per-session and skipped under reduced motion by components/hero-warmup.tsx;
- * the keyframes just define the curve.
+ * brightening, amber strongest at the edges before settling. Two layers,
+ * same duration, animated together: -media dims/desaturates the video then
+ * clears to normal (the "comes up in brightness" the copy asks for,
+ * without ever touching opacity — see components/hero-warmup.tsx for why);
+ * -glow is the amber edge highlight, screened on top so it reads against
+ * the dim opening frames rather than the video's own full-brightness
+ * colors. Gated to once-per-session and skipped under reduced motion by
+ * hero-warmup.tsx; the keyframes just define the curve.
  */
 @theme {
-  --animate-sunrise: sunrise 2.4s ease-out forwards;
+  --animate-sunrise-glow: sunrise-glow 2.4s ease-out forwards;
+  --animate-sunrise-media: sunrise-media 2.4s ease-out forwards;
 }
 
-@keyframes sunrise {
+@keyframes sunrise-glow {
   0% {
     opacity: 0;
   }
@@ -181,6 +187,18 @@
   }
   100% {
     opacity: 0;
+  }
+}
+
+@keyframes sunrise-media {
+  0% {
+    filter: brightness(0.5) saturate(0.6);
+  }
+  60% {
+    filter: brightness(0.92) saturate(0.9);
+  }
+  100% {
+    filter: none;
   }
 }
 

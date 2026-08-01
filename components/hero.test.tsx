@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import type { ReactNode } from "react";
 import type { SiteSettings } from "@/lib/sanity/types";
 
 vi.mock("@/lib/sanity/image", () => ({
@@ -9,7 +10,7 @@ vi.mock("@/lib/sanity/image", () => ({
 }));
 
 vi.mock("./hero-warmup", () => ({
-  HeroWarmup: () => null,
+  HeroWarmup: ({ children }: { children: ReactNode }) => children,
 }));
 
 import { Hero } from "./hero";

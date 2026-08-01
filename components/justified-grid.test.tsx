@@ -65,4 +65,22 @@ describe("JustifiedGrid", () => {
     fireEvent.click(screen.getByAltText("A portrait photo"));
     expect(onPhotoClick).toHaveBeenCalledWith(1);
   });
+
+  it("shows a pointer cursor on hover", () => {
+    render(<JustifiedGrid photos={photos} onPhotoClick={noop} />);
+    expect(screen.getByAltText("A landscape photo").closest("button")).toHaveClass("cursor-pointer");
+  });
+
+  it("roves focus between photos with the arrow keys", () => {
+    render(<JustifiedGrid photos={photos} onPhotoClick={noop} />);
+    const first = screen.getByAltText("A landscape photo").closest("button")!;
+    const second = screen.getByAltText("A portrait photo").closest("button")!;
+
+    first.focus();
+    fireEvent.keyDown(first, { key: "ArrowRight" });
+    expect(document.activeElement).toBe(second);
+
+    fireEvent.keyDown(second, { key: "ArrowLeft" });
+    expect(document.activeElement).toBe(first);
+  });
 });

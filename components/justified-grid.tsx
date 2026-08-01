@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef } from "react";
 import Image from "next/image";
 import { urlFor } from "@/lib/sanity/image";
 import type { Photo } from "@/lib/sanity/types";
@@ -29,7 +30,10 @@ const FILLER_COUNT = 5;
  *
  * Each photo is a real `<button>` (not a div with a click handler bolted
  * on) so it's keyboard-focusable and activates on Enter/Space for free;
- * its accessible name comes from the image's own required alt text.
+ * its accessible name comes from the image's own required alt text. Arrow
+ * Left/Right additionally rove focus directly between photos — sequential
+ * Tab still works, but stepping through a wall of images one Tab at a time
+ * is a slog, and arrow keys are the expected pattern for a grid of peers.
  */
 export function JustifiedGrid({
   photos,
@@ -38,6 +42,8 @@ export function JustifiedGrid({
   photos: Photo[];
   onPhotoClick: (index: number) => void;
 }) {
+  const buttonRefs = useRef<(HTMLButtonElement | null)[]>([]);
+
   if (photos.length === 0) return null;
 
   return (
@@ -47,9 +53,21 @@ export function JustifiedGrid({
         return (
           <button
             key={photo._id}
+            ref={(el) => {
+              buttonRefs.current[index] = el;
+            }}
             type="button"
             onClick={() => onPhotoClick(index)}
-            className="ring-focus-ring relative min-w-0 outline-none focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-inset"
+            onKeyDown={(event) => {
+              if (event.key === "ArrowRight") {
+                event.preventDefault();
+                buttonRefs.current[index + 1]?.focus();
+              } else if (event.key === "ArrowLeft") {
+                event.preventDefault();
+                buttonRefs.current[index - 1]?.focus();
+              }
+            }}
+            className="ring-focus-ring relative min-w-0 cursor-pointer outline-none focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-inset"
             style={{
               flexGrow: aspectRatio,
               flexBasis: `calc(var(--row-h) * ${aspectRatio})`,

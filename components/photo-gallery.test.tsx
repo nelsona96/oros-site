@@ -30,7 +30,7 @@ const photos: Photo[] = [
     capture: { camera: "NIKON Z8", lens: "85mm", aperture: "ƒ1.4", shutter: "1/200" },
   }),
   makePhoto("p2"),
-  makePhoto("p3"),
+  makePhoto("p3", { category: "ministry" }),
 ];
 
 describe("PhotoGallery", () => {
@@ -61,7 +61,7 @@ describe("PhotoGallery", () => {
     expect(screen.getByRole("button", { name: "Next photo" })).not.toBeDisabled();
   });
 
-  it("navigates forward and backward between photos", () => {
+  it("navigates forward and backward between photos via the chevron buttons", () => {
     render(<PhotoGallery photos={photos} />);
     fireEvent.click(screen.getByAltText("Photo p1"));
 
@@ -74,5 +74,43 @@ describe("PhotoGallery", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Previous photo" }));
     expect(screen.getByRole("button", { name: "Next photo" })).not.toBeDisabled();
+  });
+
+  it("navigates with the arrow keys", () => {
+    render(<PhotoGallery photos={photos} />);
+    fireEvent.click(screen.getByAltText("Photo p1"));
+
+    fireEvent.keyDown(screen.getByRole("dialog"), { key: "ArrowRight" });
+    expect(screen.getByRole("button", { name: "Previous photo" })).not.toBeDisabled();
+
+    fireEvent.keyDown(screen.getByRole("dialog"), { key: "ArrowLeft" });
+    expect(screen.getByRole("button", { name: "Previous photo" })).toBeDisabled();
+  });
+
+  it("navigates on a left/right swipe", () => {
+    render(<PhotoGallery photos={photos} />);
+    fireEvent.click(screen.getByAltText("Photo p1"));
+    const dialog = screen.getByRole("dialog");
+
+    fireEvent.touchStart(dialog, { touches: [{ clientX: 300 }] });
+    fireEvent.touchEnd(dialog, { changedTouches: [{ clientX: 100 }] });
+    expect(screen.getByRole("button", { name: "Previous photo" })).not.toBeDisabled();
+  });
+
+  it("closes via the close button", () => {
+    render(<PhotoGallery photos={photos} />);
+    fireEvent.click(screen.getByAltText("Photo p1"));
+    fireEvent.click(screen.getByRole("button", { name: "Close" }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("filters the grid by category", () => {
+    render(<PhotoGallery photos={photos} />);
+    expect(screen.getAllByRole("img")).toHaveLength(3);
+
+    fireEvent.click(screen.getByRole("button", { name: "Ministry" }));
+
+    expect(screen.getAllByRole("img")).toHaveLength(1);
+    expect(screen.getByAltText("Photo p3")).toBeInTheDocument();
   });
 });

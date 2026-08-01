@@ -2,7 +2,6 @@ import Image from "next/image";
 import { urlFor } from "@/lib/sanity/image";
 import type { SiteSettings } from "@/lib/sanity/types";
 import { Display } from "./typography";
-import { HeroWarmup } from "./hero-warmup";
 
 /**
  * DESIGN.md §8.1: silent, looped, autoplaying, no controls, not clickable —
@@ -14,9 +13,10 @@ import { HeroWarmup } from "./hero-warmup";
  * The video and the poster <Image> are both always in the DOM; which one is
  * visible is decided purely by the `motion-reduce:`/`motion-safe:` CSS
  * variants, so reduced-motion users get a still frame with no JS branch and
- * no hydration mismatch risk. Both are wrapped in <HeroWarmup> (a client
- * component taking server-rendered children) so the warm-up's filter ramp
- * applies to the media layer itself — see hero-warmup.tsx.
+ * no hydration mismatch risk.
+ *
+ * The sunrise warm-up device from DESIGN.md §3 is deferred post-MVP — see
+ * the note there for the implementation approach if it comes back.
  */
 export function Hero({ settings }: { settings: SiteSettings | null }) {
   const name = settings?.name ?? "Oros Productions";
@@ -27,36 +27,34 @@ export function Hero({ settings }: { settings: SiteSettings | null }) {
 
   return (
     <section className="relative -mt-20 h-[80svh] w-full overflow-hidden md:h-[85svh] lg:h-svh">
-      <HeroWarmup>
-        {videoUrl && posterUrl ? (
-          <video
-            className="absolute inset-0 h-full w-full object-cover motion-reduce:hidden"
-            autoPlay
-            muted
-            loop
-            playsInline
-            preload="auto"
-            poster={posterUrl}
-          >
-            <source src={videoUrl} type="video/mp4" />
-          </video>
-        ) : null}
+      {videoUrl && posterUrl ? (
+        <video
+          className="absolute inset-0 h-full w-full object-cover motion-reduce:hidden"
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+          poster={posterUrl}
+        >
+          <source src={videoUrl} type="video/mp4" />
+        </video>
+      ) : null}
 
-        {posterUrl ? (
-          <Image
-            src={posterUrl}
-            alt=""
-            fill
-            priority
-            sizes="100vw"
-            placeholder={poster?.asset.metadata.lqip ? "blur" : "empty"}
-            blurDataURL={poster?.asset.metadata.lqip}
-            className={`object-cover ${videoUrl ? "hidden motion-reduce:block" : ""}`}
-          />
-        ) : (
-          <div className="absolute inset-0 bg-app-bg" />
-        )}
-      </HeroWarmup>
+      {posterUrl ? (
+        <Image
+          src={posterUrl}
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          placeholder={poster?.asset.metadata.lqip ? "blur" : "empty"}
+          blurDataURL={poster?.asset.metadata.lqip}
+          className={`object-cover ${videoUrl ? "hidden motion-reduce:block" : ""}`}
+        />
+      ) : (
+        <div className="absolute inset-0 bg-app-bg" />
+      )}
 
       <div className="scrim absolute inset-0" />
 

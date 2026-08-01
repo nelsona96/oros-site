@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Instrument_Serif, Instrument_Sans, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
+import { cn } from "@/lib/utils";
 
 const instrumentSerif = Instrument_Serif({
   variable: "--font-instrument-serif",
@@ -34,7 +35,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`dark ${instrumentSerif.variable} ${instrumentSans.variable} ${ibmPlexMono.variable}`}
+      className={cn("dark", instrumentSerif.variable, instrumentSans.variable, ibmPlexMono.variable)}
     >
       <body>{children}</body>
     </html>

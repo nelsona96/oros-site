@@ -4,7 +4,12 @@
 @import "@radix-ui/colors/gold-dark.css";
 @import "@radix-ui/colors/gold-dark-alpha.css";
 @import "@radix-ui/colors/amber-dark.css";
+@import "@radix-ui/colors/tomato-dark.css";
 @import "@radix-ui/colors/black-alpha.css";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
 
 /*
  * Semantic aliases — see docs/DESIGN.md §4. Components reference these,
@@ -51,12 +56,42 @@
   --scrim: linear-gradient(to top, var(--black-a11), transparent);
   --overlay: var(--black-a9);
   --focus-ring: var(--amber-9);
+
+  /*
+   * shadcn/Base UI token bridge — see docs/SPEC.md §1 "Token bridging".
+   * shadcn's own generated values are replaced wholesale with our aliases.
+   * --destructive uses Tomato (not otherwise in our palette): Sand's natural
+   * pairing runs warm, and Tomato is on Radix's white-text list like Gold,
+   * so it stays consistent with the rest of the accent system.
+   */
+  --background: var(--app-bg);
+  --foreground: var(--text-primary);
+  --card: var(--surface);
+  --card-foreground: var(--text-primary);
+  --popover: var(--surface);
+  --popover-foreground: var(--text-primary);
+  --primary: var(--accent-solid);
+  --primary-foreground: var(--text-on-accent-solid);
+  --secondary: var(--component-bg);
+  --secondary-foreground: var(--text-primary);
+  --muted: var(--app-bg-subtle);
+  --muted-foreground: var(--text-secondary);
+  --accent: var(--component-accent-bg);
+  --accent-foreground: var(--text-primary);
+  --destructive: var(--tomato-9);
+  --destructive-foreground: white;
+  --border: var(--border-subtle);
+  --input: var(--border-interactive);
+  --ring: var(--focus-ring);
+  --radius: 2px;
 }
 
 @theme inline {
   --font-display: var(--font-instrument-serif);
   --font-body: var(--font-instrument-sans);
   --font-mono: var(--font-ibm-plex-mono);
+  --font-sans: var(--font-body);
+  --font-heading: var(--font-display);
 
   --color-app-bg: var(--app-bg);
   --color-app-bg-subtle: var(--app-bg-subtle);
@@ -81,26 +116,60 @@
   --color-light-solid: var(--light-solid);
   --color-light-solid-hover: var(--light-solid-hover);
 
-  --color-primary: var(--text-primary);
-  --color-secondary: var(--text-secondary);
-  --color-accent: var(--text-accent);
-  --color-accent-strong: var(--text-accent-strong);
-  --color-light: var(--text-light);
-  --color-on-accent-solid: var(--text-on-accent-solid);
-  --color-on-light-solid: var(--text-on-light-solid);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-accent: var(--text-accent);
+  --color-text-accent-strong: var(--text-accent-strong);
+  --color-text-light: var(--text-light);
+  --color-text-on-accent-solid: var(--text-on-accent-solid);
+  --color-text-on-light-solid: var(--text-on-light-solid);
 
   --color-overlay: var(--overlay);
   --color-focus-ring: var(--focus-ring);
 
   --radius-control: 2px;
-}
 
-body {
-  background-color: var(--app-bg);
-  color: var(--text-primary);
-  font-family: var(--font-body), sans-serif;
+  /* shadcn/Base UI component tokens, bridged above */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
 }
 
 .scrim {
   background-image: var(--scrim);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
 }

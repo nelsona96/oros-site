@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { Button } from "@/components/ui/button";
 
 type Swatch = { label: string; cssVar: string; className: string };
 
@@ -42,34 +43,34 @@ const solids: (Swatch & { textClassName: string })[] = [
     label: "accent-solid",
     cssVar: "--accent-solid",
     className: "bg-accent-solid",
-    textClassName: "text-on-accent-solid",
+    textClassName: "text-text-on-accent-solid",
   },
   {
     label: "accent-solid-hover",
     cssVar: "--accent-solid-hover",
     className: "bg-accent-solid-hover",
-    textClassName: "text-on-accent-solid",
+    textClassName: "text-text-on-accent-solid",
   },
   {
     label: "light-solid",
     cssVar: "--light-solid",
     className: "bg-light-solid",
-    textClassName: "text-on-light-solid",
+    textClassName: "text-text-on-light-solid",
   },
   {
     label: "light-solid-hover",
     cssVar: "--light-solid-hover",
     className: "bg-light-solid-hover",
-    textClassName: "text-on-light-solid",
+    textClassName: "text-text-on-light-solid",
   },
 ];
 
 const textTokens: Swatch[] = [
-  { label: "primary", cssVar: "--text-primary", className: "text-primary" },
-  { label: "secondary", cssVar: "--text-secondary", className: "text-secondary" },
-  { label: "accent", cssVar: "--text-accent", className: "text-accent" },
-  { label: "accent-strong", cssVar: "--text-accent-strong", className: "text-accent-strong" },
-  { label: "light", cssVar: "--text-light", className: "text-light" },
+  { label: "primary", cssVar: "--text-primary", className: "text-text-primary" },
+  { label: "secondary", cssVar: "--text-secondary", className: "text-text-secondary" },
+  { label: "accent", cssVar: "--text-accent", className: "text-text-accent" },
+  { label: "accent-strong", cssVar: "--text-accent-strong", className: "text-text-accent-strong" },
+  { label: "light", cssVar: "--text-light", className: "text-text-light" },
 ];
 
 export default function StyleguidePage() {
@@ -78,9 +79,9 @@ export default function StyleguidePage() {
   }
 
   return (
-    <main className="bg-app-bg text-primary min-h-screen space-y-16 px-8 py-16">
+    <main className="bg-app-bg text-text-primary min-h-screen space-y-16 px-8 py-16">
       <header>
-        <p className="font-mono text-xs tracking-widest text-secondary uppercase">
+        <p className="font-mono text-xs tracking-widest text-text-secondary uppercase">
           Dev only — docs/DESIGN.md §4 &amp; §5
         </p>
         <h1 className="font-display text-5xl">Styleguide</h1>
@@ -157,7 +158,7 @@ export default function StyleguidePage() {
 
       <Section title="Scrim">
         <div className="scrim relative h-40 w-64 rounded-control bg-component-accent">
-          <p className="absolute right-3 bottom-3 left-3 font-mono text-xs text-primary uppercase">
+          <p className="absolute right-3 bottom-3 left-3 font-mono text-xs text-text-primary uppercase">
             Type over photograph
           </p>
         </div>
@@ -166,13 +167,23 @@ export default function StyleguidePage() {
       <Section title="Type scale">
         <div className="space-y-6">
           <p className="font-display text-5xl">Scaling new heights in cinematic storytelling.</p>
-          <p className="font-body max-w-prose text-secondary">
+          <p className="font-body max-w-prose text-text-secondary">
             Oros Productions is a photography and videography studio working across weddings,
             commercial work, portraiture, and ministry film.
           </p>
-          <p className="font-mono text-xs tracking-widest text-accent uppercase">
+          <p className="font-mono text-xs tracking-widest text-text-accent uppercase">
             NIKON Z8 · 85MM · ƒ1.4 · 1/200
           </p>
+        </div>
+      </Section>
+
+      <Section title="shadcn + Base UI bridge">
+        <div className="flex flex-wrap items-center gap-4">
+          <Button>Default</Button>
+          <Button variant="outline">Outline</Button>
+          <Button variant="secondary">Secondary</Button>
+          <Button variant="ghost">Ghost</Button>
+          <Button variant="destructive">Destructive</Button>
         </div>
       </Section>
     </main>
@@ -182,7 +193,7 @@ export default function StyleguidePage() {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="space-y-4">
-      <h2 className="font-mono text-sm tracking-widest text-accent uppercase">{title}</h2>
+      <h2 className="font-mono text-sm tracking-widest text-text-accent uppercase">{title}</h2>
       {children}
     </section>
   );
@@ -203,7 +214,7 @@ function SwatchRow({ swatches }: { swatches: Swatch[] }) {
 
 function Label({ swatch }: { swatch: Swatch }) {
   return (
-    <p className="font-mono text-xs text-secondary">
+    <p className="font-mono text-xs text-text-secondary">
       <span className="block">{swatch.label}</span>
       <span className="block">{swatch.cssVar}</span>
     </p>

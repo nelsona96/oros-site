@@ -52,6 +52,7 @@ const SITE_SETTINGS_PROJECTION = `{
   "heroPoster": heroPoster${IMAGE_PROJECTION},
   aboutHeading,
   aboutBody,
+  aboutLongForm,
   "portrait": portrait${IMAGE_PROJECTION},
   contactEmail,
   contactPhone,

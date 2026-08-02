@@ -46,8 +46,18 @@ export const siteSettings = defineType({
     }),
     defineField({
       name: 'aboutBody',
-      title: 'About body',
+      title: 'About body (short teaser)',
+      description: 'Two or three sentences shown on the landing page. The full story lives in "About (long form)" below.',
       type: 'text',
+      group: 'about',
+    }),
+    defineField({
+      name: 'aboutLongForm',
+      title: 'About (long form)',
+      description:
+        'The full /about page copy, including the faith/mission paragraph — stated plainly, not preached. Separate paragraphs with a blank line.',
+      type: 'text',
+      rows: 10,
       group: 'about',
     }),
     defineField({

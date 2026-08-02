@@ -81,6 +81,7 @@ export interface SiteSettings {
   heroPoster?: SanityImage;
   aboutHeading?: string;
   aboutBody?: string;
+  aboutLongForm?: string;
   portrait?: SanityImage;
   contactEmail?: string;
   contactPhone?: string;

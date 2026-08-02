@@ -32,7 +32,7 @@ export function SelectedWork({ photos, films }: { photos: Photo[]; films: Film[]
     <Section>
       <Container className="space-y-8">
         <div className="flex flex-wrap items-end justify-between gap-4">
-          <div>
+          <div className="space-y-4">
             <Eyebrow>Selected Work</Eyebrow>
             <Display as="h2" size="md">
               A cross-vertical cut of recent work.

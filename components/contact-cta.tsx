@@ -17,10 +17,12 @@ export function ContactCta({ settings }: { settings: SiteSettings | null }) {
   return (
     <Section className="bg-surface ascent-surface">
       <Container className="flex flex-col items-center gap-6 text-center">
-        <Eyebrow>Contact</Eyebrow>
-        <Display as="h2" size="lg" className="max-w-2xl">
-          Let&rsquo;s build something worth remembering.
-        </Display>
+        <div className="space-y-4">
+          <Eyebrow>Contact</Eyebrow>
+          <Display as="h2" size="lg" className="max-w-2xl">
+            Let&rsquo;s build something worth remembering.
+          </Display>
+        </div>
         <Lead className="max-w-prose">
           Weddings, commercial work, portraits, or ministry film — tell us what you&rsquo;re planning.
         </Lead>

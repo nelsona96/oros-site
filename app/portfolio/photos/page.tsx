@@ -10,7 +10,7 @@ export default async function PhotosPage() {
   return (
     <Section className="pt-8 md:pt-12">
       <Container className="space-y-8">
-        <div>
+        <div className="space-y-4">
           <Eyebrow>Portfolio</Eyebrow>
           <Display as="h1" size="md">
             Photos.

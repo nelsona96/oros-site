@@ -16,7 +16,7 @@ export function Services({ services }: { services: Service[] }) {
   return (
     <Section className="bg-app-bg-subtle ascent-subtle">
       <Container className="space-y-8">
-        <div>
+        <div className="space-y-4">
           <Eyebrow>Services</Eyebrow>
           <Display as="h2" size="md">
             Four verticals, one studio.

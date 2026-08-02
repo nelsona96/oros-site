@@ -14,7 +14,7 @@ export function Testimonials({ testimonials }: { testimonials: Testimonial[] }) 
   return (
     <Section className="bg-app-bg-subtle ascent-subtle">
       <Container className="space-y-8">
-        <div>
+        <div className="space-y-4">
           <Eyebrow>What Clients Say</Eyebrow>
           <Display as="h2" size="md">
             Kind words from people we&rsquo;ve worked with.

@@ -224,14 +224,20 @@ sun; more than one sun and the falloff collapses.
 
 | Role | Face | Job |
 |---|---|---|
-| Display | **Instrument Serif** | High-contrast, tight, editorial. Genuinely cinematic set large — a film title card, not a wedding script. |
-| Body | **Instrument Sans** | Clean, quiet, related by family. |
+| Display | **Fraunces** | Soft, high-contrast serif with "wonky"/optical-size character. Warm and crafted rather than severe — genuinely cinematic set large without tipping into a fashion masthead. |
+| Body | **Instrument Sans** | Clean, quiet — the deliberate counterweight to Fraunces' character. This pairing is contrast by design, not by shared family; Fraunces and Instrument Sans have no lineage in common. |
 | Utility | **IBM Plex Mono** | Capture metadata, credits, category labels, running times. |
 
 All free, all load via `next/font`.
 
 **Deliberately avoided:** Playfair Display + letterspaced Montserrat (every photographer
-template ships it), and Inter (reads as "a developer chose this").
+template ships it), and Inter (reads as "a developer chose this"). Also passed over during
+the Phase 12b typeface review, which built a side-by-side comparison in `/styleguide`
+before deciding: **Bodoni Moda**, a true Didone whose extreme thick/thin contrast read as
+fashion-editorial rather than warm; **DM Serif Display**, too close to a generic editorial
+masthead to feel distinct; and the original default, **Instrument Serif** — technically
+same-family with Instrument Sans, but too restrained to be memorable set large at hero
+scale, which is the whole point of a dedicated display face here.
 
 **Capture metadata as a typographic element.** `NIKON Z8 · 85MM · ƒ1.4 · 1/200` set in
 mono beneath an image is real information from the subject's own world. It earns the

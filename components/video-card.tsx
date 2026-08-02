@@ -33,7 +33,7 @@ export function VideoCard({ film }: { film: Film }) {
       href={`/portfolio/videos/${film.slug}`}
       className="ring-focus-ring rounded-control group block touch-manipulation outline-none focus-visible:ring-2"
     >
-      <div className="rounded-control bg-surface relative aspect-video overflow-hidden">
+      <div className="reveal rounded-control bg-surface relative aspect-video overflow-hidden">
         <Image
           src={
             film.thumbnail

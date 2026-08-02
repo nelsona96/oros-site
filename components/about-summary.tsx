@@ -33,7 +33,7 @@ export function AboutSummary({ settings }: { settings: SiteSettings | null }) {
             height={portrait.asset.metadata.dimensions.height}
             placeholder="blur"
             blurDataURL={portrait.asset.metadata.lqip}
-            className="border-border w-full border"
+            className="reveal border-border w-full border"
           />
         ) : null}
 

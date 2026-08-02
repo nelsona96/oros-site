@@ -12,7 +12,7 @@ export function Testimonials({ testimonials }: { testimonials: Testimonial[] }) 
   if (testimonials.length === 0) return null;
 
   return (
-    <Section className="bg-app-bg-subtle">
+    <Section className="bg-app-bg-subtle ascent-subtle">
       <Container className="space-y-8">
         <div>
           <Eyebrow>What Clients Say</Eyebrow>
@@ -25,7 +25,7 @@ export function Testimonials({ testimonials }: { testimonials: Testimonial[] }) 
           {testimonials.map((testimonial) => (
             <blockquote
               key={testimonial._id}
-              className="border-border bg-surface rounded-control space-y-3 border p-6"
+              className="border-border bg-surface hover:bg-surface-hover hover:border-border-strong rounded-control space-y-3 border p-6 transition-colors"
             >
               <p className="font-body text-text-primary">&ldquo;{testimonial.quote}&rdquo;</p>
               <footer className="font-mono text-xs tracking-widest text-text-secondary uppercase">

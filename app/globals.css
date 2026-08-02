@@ -98,17 +98,35 @@
    * display tier interpolates between a mobile floor and a desktop ceiling
    * directly off viewport width, replacing the old fixed text-Nxl +
    * md:text-Nxl breakpoint jumps call sites used to hardcode individually.
+   * A constant ~1.3 ratio step between tiers (both at the mobile floor and
+   * the desktop ceiling) — revised down from an earlier first pass that
+   * reverse-engineered per-component legacy pixel values and ended up with
+   * inconsistent, visually "jumpy" steps between tiers.
+   *
+   * Line-height is paired directly onto each size (`--text-*--line-height`,
+   * Tailwind's own convention — see `--text-lg--line-height` etc. in
+   * tailwindcss/theme.css) rather than a separate `leading-display` utility.
+   * tailwind-merge's default config treats the `font-size` and `leading`
+   * class groups as conflicting (matching this same paired-value
+   * convention), so a later `text-display-*` class in the same `cn()` call
+   * silently cancelled an earlier standalone `leading-display` class —
+   * pairing them removes the second class entirely, so there's nothing
+   * left for it to cancel.
    */
-  --text-display-xl: clamp(3rem, 2.35rem + 3vw, 4.5rem);
-  --text-display-lg: clamp(2.5rem, 2.05rem + 2.25vw, 3.75rem);
-  --text-display-md: clamp(2.25rem, 1.95rem + 1.5vw, 3rem);
-  --text-display-sm: clamp(1.5rem, 1.35rem + 0.75vw, 1.875rem);
+  --text-display-xl: clamp(2.75rem, 2.45rem + 1.25vw, 3.5rem);
+  --text-display-xl--line-height: 1.05;
+  --text-display-lg: clamp(2.125rem, 1.9rem + 1vw, 2.625rem);
+  --text-display-lg--line-height: 1.05;
+  --text-display-md: clamp(1.625rem, 1.45rem + 0.75vw, 2rem);
+  --text-display-md--line-height: 1.05;
+  --text-display-sm: clamp(1.25rem, 1.1rem + 0.6vw, 1.5rem);
+  --text-display-sm--line-height: 1.1;
   --text-body: 1rem;
+  --text-body--line-height: 1.65;
   --text-body-sm: 0.875rem;
+  --text-body-sm--line-height: 1.55;
   --text-label: 0.75rem;
 
-  --leading-display: 1.1;
-  --leading-body: 1.65;
   --tracking-display: -0.015em;
 
   --color-app-bg: var(--app-bg);

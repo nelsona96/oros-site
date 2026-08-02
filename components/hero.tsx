@@ -62,7 +62,11 @@ export function Hero({ settings }: { settings: SiteSettings | null }) {
         <Display size="xl" className="text-text-primary">
           {name}
         </Display>
-        {tagline ? <Eyebrow tone="secondary">{tagline}</Eyebrow> : null}
+        {tagline ? (
+          <Eyebrow tone="secondary" size="md">
+            {tagline}
+          </Eyebrow>
+        ) : null}
       </div>
     </section>
   );

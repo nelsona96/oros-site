@@ -2,7 +2,7 @@ import type { ElementType, ReactNode } from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
-const displayVariants = cva("font-display leading-display tracking-display", {
+const displayVariants = cva("font-display tracking-display", {
   variants: {
     size: {
       xl: "text-display-xl",
@@ -28,15 +28,23 @@ export function Display({
   return <Tag className={cn(displayVariants({ size }), className)}>{children}</Tag>;
 }
 
-const eyebrowVariants = cva("font-mono text-label tracking-widest uppercase", {
+const eyebrowVariants = cva("font-mono tracking-widest uppercase", {
   variants: {
     tone: {
       accent: "text-text-accent",
       secondary: "text-text-secondary",
       primary: "text-text-primary",
     },
+    // "base" is the quiet section-label size used everywhere; "md" is for
+    // the rarer case where a mono-caps line needs to carry real weight of
+    // its own — a hero subtitle sitting under a display headline, not a
+    // dev label or a card caption.
+    size: {
+      base: "text-label",
+      md: "text-sm",
+    },
   },
-  defaultVariants: { tone: "accent" },
+  defaultVariants: { tone: "accent", size: "base" },
 });
 
 /**
@@ -46,18 +54,20 @@ const eyebrowVariants = cva("font-mono text-label tracking-widest uppercase", {
 export function Eyebrow({
   as: Tag = "p",
   tone,
+  size,
   className,
   children,
 }: {
   as?: ElementType;
   tone?: VariantProps<typeof eyebrowVariants>["tone"];
+  size?: VariantProps<typeof eyebrowVariants>["size"];
   className?: string;
   children: ReactNode;
 }) {
-  return <Tag className={cn(eyebrowVariants({ tone }), className)}>{children}</Tag>;
+  return <Tag className={cn(eyebrowVariants({ tone, size }), className)}>{children}</Tag>;
 }
 
-const bodyVariants = cva("font-body leading-body", {
+const bodyVariants = cva("font-body", {
   variants: {
     tone: {
       secondary: "text-text-secondary",
@@ -88,5 +98,5 @@ export function Body({
 
 /** A more prominent intro paragraph — for the one line under a heading that needs to read first, not just next. */
 export function Lead({ className, children }: { className?: string; children: ReactNode }) {
-  return <p className={cn("font-body leading-body text-text-secondary text-lg", className)}>{children}</p>;
+  return <p className={cn("font-body text-text-secondary text-lg", className)}>{children}</p>;
 }

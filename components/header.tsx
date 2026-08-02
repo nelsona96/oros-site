@@ -11,7 +11,8 @@ const NAV_LINKS = [
   { href: "/contact", label: "Contact" },
 ];
 
-const LINK_CLASSES = "font-mono text-xs tracking-widest uppercase transition-colors rounded-control";
+const LINK_CLASSES =
+  "font-mono text-xs tracking-widest uppercase transition-colors rounded-control md:text-sm";
 
 export function Header() {
   const pathname = usePathname();

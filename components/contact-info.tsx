@@ -11,7 +11,7 @@ export function ContactInfo({ settings }: { settings: SiteSettings | null }) {
   if (!settings?.contactEmail && !settings?.contactPhone && !settings?.instagramHandle) return null;
 
   return (
-    <div className="flex flex-col items-center gap-3">
+    <div className="space-y-3">
       {settings.contactEmail ? (
         <Link href={`mailto:${settings.contactEmail}`} className={LINK_CLASSES}>
           {settings.contactEmail}

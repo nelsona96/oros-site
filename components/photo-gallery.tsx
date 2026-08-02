@@ -173,7 +173,10 @@ export function PhotoGallery({ photos }: { photos: Photo[] }) {
     <>
       <LightboxPreloadLinks photos={photos} />
       <CategoryFilter active={category} onSelect={handleCategoryChange} />
-      <JustifiedGrid photos={filtered} onPhotoClick={setIndex} />
+      <JustifiedGrid
+        items={filtered.map((photo) => ({ id: photo._id, image: photo.image, alt: photo.image.alt ?? "" }))}
+        onItemClick={setIndex}
+      />
 
       <Dialog
         open={index !== null}

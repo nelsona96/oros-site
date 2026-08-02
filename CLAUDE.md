@@ -129,6 +129,10 @@ tracing it back (`gold-9`).
   config) — excluded from the root `tsconfig.json` and root
   `eslint.config.mjs`. Don't add Studio source files to root's lint/type
   scope, and don't add root dependencies to `studio/package.json`.
+- The shell here is **zsh**, which reserves `status` (and `pipestatus`) as a
+  read-only special variable — `status=$(...)` fails with "read-only
+  variable: status" rather than assigning. Don't use `status` as a variable
+  name in inline bash/zsh snippets; something like `chk` or `result` is safe.
 
 ### Graphite stacked-PR workflow — follow strictly, alongside `docs/BUILD_PLAN.md`'s phases
 
@@ -148,10 +152,21 @@ stacked-PR merge to go wrong once already (step 5 below explains why).
    `.github/PULL_REQUEST_TEMPLATE.md` via `gh pr edit` — never leave it
    blank. Branch names follow `phase-<N><letter>-<slug>` (e.g.
    `phase-9a-videos-feed`) — check `gh pr list --state merged` for the
-   established slug style before naming a new one.
+   established slug style before naming a new one. **`gt submit
+   --no-interactive` opens the PR in draft** ("new PRs will be created in
+   draft mode" — its own stated behavior, not a guess) — follow the `gh pr
+   edit` with `gh pr ready <n>` or it sits in draft indefinitely.
 4. **Wait for approval again before merging.** Submitting is a separate
    approval from merging — being told to open/update a PR is not permission
-   to merge it, even once CI is green. Say it's ready and stop.
+   to merge it, even once CI is green. Say it's ready and stop. **Checking
+   CI:** `gh pr checks <n> --watch --fail-fast` — one blocking call that
+   polls until done and exits non-zero on the first failure. Don't hand-roll
+   a polling loop: `gh pr checks` alone returns immediately with exit code 8
+   while pending (not a bash error, don't retry-loop around it), and a
+   naive `while` loop re-invoking it burns tool calls for no reason `--watch`
+   doesn't already handle. Give the Bash call a `timeout` sized to this
+   repo's actual CI duration (~1 min at Phase 10) rather than the 2-minute
+   default's worth of retries.
 5. **Merge with `gt merge`, never `gh pr merge` PR-by-PR.** `gt merge`
    understands the whole stack and merges/retargets it correctly in one
    operation. Manually merging one PR at a time with `gh pr merge
@@ -408,3 +423,35 @@ route player overlay, and the standalone `/portfolio/videos/[slug]` page.
   boundary" move as this repo's `next/navigation` mocks, just for a
   third-party web component instead of a framework API. See
   `components/film-player.test.tsx`.
+
+---
+
+# Established patterns (Phase 10)
+
+Phase 10a built `/about` — portrait, heading, long-form copy sourced from
+`siteSettings`.
+
+## Sanity schema deploy
+
+**Editing anything under `studio/schemaTypes/**` isn't done once it's merged
+to `main` — the hosted Studio at `https://oros.sanity.studio/` is a separate
+deploy target that only updates when told to.** Next's own Vercel deploy and
+Studio's deploy are two independent pipelines; merging a PR does not trigger
+either one.
+
+1. Confirm CLI auth/project first: `npx sanity projects list` (run from
+   `studio/`) — lists the project without mutating anything, so it's a safe
+   check. If it prompts to log in, `npx sanity login` first.
+2. Deploy with `npm run deploy` from `studio/` (wraps `sanity deploy`) —
+   **never `sanity dev`'s local server** for anything meant to reach your
+   friend; `dev` is local-only and closes when the process exits.
+3. Verify with `npx sanity schema list` (also from `studio/`) — confirms the
+   deployed schema doc updated; doesn't tell you the *field-level* diff, so
+   spot-check the actual field in the Studio UI if the change is easy to
+   miss.
+
+This only pushes schema/config, never content — seeding or editing actual
+documents is `scripts/seed.ts` or the Studio UI, a completely separate
+concern. A schema change that adds a field (rather than renaming/removing
+one) is safe to deploy anytime; existing documents just show the new field
+empty until someone fills it in in Studio.

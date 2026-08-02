@@ -144,7 +144,17 @@ push`/`gh pr create`/`gh pr merge` for the `gt` equivalent is what caused a
 stacked-PR merge to go wrong once already (step 5 below explains why).
 
 1. **Implement.** `gt create` off the *previous phase's branch*, not `main`
-   — a stack, never branching straight off trunk for a sub-phase.
+   — a stack, never branching straight off trunk for a sub-phase. `gt
+   create -a -m "<msg>"` auto-generates the branch name from the commit
+   message, which won't match the `phase-<N><letter>-<slug>` convention —
+   rename it to match with **`gt branch rename <name>`, never plain `git
+   branch -m`**. A plain `git branch -m` renames the ref but doesn't update
+   Graphite's own metadata store, which still maps the *old* name to its
+   parent/stack position — the renamed branch comes back from `gt log
+   short` as `untracked` (confirmed: `gt branch info` then errors "Cannot
+   perform this operation on untracked branch"). Recoverable with `gt track
+   --parent <parent-branch>` (no commits lost — the fix is metadata-only),
+   but `gt branch rename` avoids the whole detour.
 2. **Wait for approval of the implementation** before doing anything below.
    Don't submit, open a PR, or merge unprompted.
 3. **Submit, once approved:** `gt submit` (or `gt submit --stack` for the

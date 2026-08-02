@@ -133,6 +133,18 @@ tracing it back (`gold-9`).
   sub-phases like `5a`/`5b` when a phase would blow past it — see
   `docs/BUILD_PLAN.md`'s already-split phases for the pattern). PR
   descriptions are written and filled in via `gh pr edit`, never left blank.
+  Branch names follow `phase-<N><letter>-<slug>` (e.g. `phase-9a-videos-feed`,
+  `phase-8b-filters-lightbox`) — check `gh pr list --state merged` for the
+  established slug style before naming a new one.
+- **Merging a stacked PR chain: retarget before you delete, not after.**
+  Deleting a merged PR's branch with `gh pr merge --delete-branch` does
+  **not** retarget any open PR still stacked on top of it to `main` — GitHub
+  auto-*closes* that PR instead (its base branch just vanished out from under
+  it), and a closed PR can't be reopened once its base is gone. Recovery is
+  just opening a fresh PR from the same still-intact branch against `main`
+  (no commits are lost — the branch itself was never touched), but it's
+  avoidable: `gh pr edit <next-pr> --base main` *before* merging/deleting the
+  branch below it, working from the bottom of the stack up.
 
 ---
 
@@ -261,6 +273,16 @@ lightbox).
   was tested against `next dev` or a production build (`npm run build &&
   npm run start`) — this exact investigation (Phase 8b) turned out to be
   dev-server-only, not a bug in the component code at all.
+- **Verifying a production build while a `next dev` server might already be
+  running on this machine: give the verification build its own `distDir`**
+  (temporarily add `distDir: ".next-verify"` to `next.config.ts`, `npm run
+  build`, `npm run start -- -p <other-port>`, then revert the config and
+  `rm -rf .next-verify` when done). `next build`/`next dev` share the plain
+  `.next` folder by default, and a build while dev is running clobbers the
+  dev server's manifest out from under it — confirmed this actually happens,
+  not just theoretical. `next build` also rewrites `tsconfig.json` (reformats
+  it and adds `include` entries for whatever `distDir` was active); `git
+  checkout -- tsconfig.json` after removing the temporary `distDir`.
 - `next/image`'s `onLoad` is deferred behind an internal `img.decode()`
   promise — `fireEvent.load(img)` won't synchronously flip state in a test;
   wrap the assertion in `waitFor(...)`.
@@ -302,6 +324,16 @@ route player overlay, and the standalone `/portfolio/videos/[slug]` page.
   the combination — see the comment on `FilmPage` in that file. Worth
   checking for again before adding a `loading.tsx` to any route segment that
   shares a layout with a parallel-route slot.
+- **`next dev`'s Turbopack can corrupt an intercepting route's own matcher
+  across repeated hot-reloads**, throwing `Invalid interception route:
+  /portfolio/videos/(.)(.)(.)[slug]...` (the `(.)` marker compounding a bit
+  further each recompile) even though the file on disk still has a single,
+  correct `(.)`. Confirmed by checking `.next/dev/logs/next-development.log`
+  — the route table itself gets rebuilt wrong, not the source. A clean `next
+  build` (see the isolated-`distDir` verification technique in "Testing &
+  mobile-debugging gotchas" above) always showed the correct route once;
+  this is dev-server/HMR state, not a code bug, and a dev-server restart
+  clears it too.
 
 ## shadcn / Base UI gotchas (continued)
 

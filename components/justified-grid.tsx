@@ -73,7 +73,7 @@ export function JustifiedGrid({
                 buttonRefs.current[index - 1]?.focus();
               }
             }}
-            className="ring-focus-ring touch-manipulation relative min-w-0 cursor-pointer outline-none focus-visible:z-10 focus-visible:ring-2"
+            className="ring-focus-ring reveal group touch-manipulation relative min-w-0 cursor-pointer outline-none focus-visible:z-10 focus-visible:ring-2"
             style={{
               flexGrow: aspectRatio,
               flexBasis: `calc(var(--row-h) * ${aspectRatio})`,
@@ -87,7 +87,7 @@ export function JustifiedGrid({
               sizes={SIZES}
               placeholder="blur"
               blurDataURL={photo.image.asset.metadata.lqip}
-              className="object-cover"
+              className="object-cover transition-opacity group-hover:opacity-90"
             />
           </button>
         );

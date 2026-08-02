@@ -49,7 +49,7 @@ export function SelectedWork({ photos, films }: { photos: Photo[]; films: Film[]
 
         <div className="columns-2 gap-4 md:columns-4">
           {photos.map((photo) => (
-            <div key={photo._id} className="mb-4 break-inside-avoid">
+            <div key={photo._id} className="reveal mb-4 break-inside-avoid">
               <Image
                 src={urlFor(photo.image).width(800).quality(80).url()}
                 alt={photo.image.alt ?? ""}
@@ -63,7 +63,7 @@ export function SelectedWork({ photos, films }: { photos: Photo[]; films: Film[]
             </div>
           ))}
           {filmsWithThumbnail.map((film) => (
-            <div key={film._id} className="relative mb-4 break-inside-avoid">
+            <div key={film._id} className="reveal relative mb-4 break-inside-avoid">
               <Image
                 src={urlFor(film.thumbnail).width(800).quality(80).url()}
                 alt={film.thumbnail.alt ?? film.title}

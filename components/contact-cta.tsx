@@ -15,7 +15,7 @@ import { Button } from "./ui/button";
  */
 export function ContactCta({ settings }: { settings: SiteSettings | null }) {
   return (
-    <Section className="bg-surface">
+    <Section className="bg-surface ascent-surface">
       <Container className="flex flex-col items-center gap-6 text-center">
         <Eyebrow>Contact</Eyebrow>
         <Display as="h2" className="max-w-2xl text-4xl md:text-6xl">

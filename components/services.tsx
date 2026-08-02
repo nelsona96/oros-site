@@ -14,7 +14,7 @@ export function Services({ services }: { services: Service[] }) {
   if (services.length === 0) return null;
 
   return (
-    <Section className="bg-app-bg-subtle">
+    <Section className="bg-app-bg-subtle ascent-subtle">
       <Container className="space-y-8">
         <div>
           <Eyebrow>Services</Eyebrow>
@@ -25,7 +25,10 @@ export function Services({ services }: { services: Service[] }) {
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {services.map((service) => (
-            <div key={service._id} className="border-border bg-surface rounded-control space-y-2 border p-6">
+            <div
+              key={service._id}
+              className="border-border bg-surface hover:bg-surface-hover hover:border-border-strong rounded-control space-y-2 border p-6 transition-colors"
+            >
               <Display as="h3" className="text-2xl text-text-primary">
                 {service.title}
               </Display>

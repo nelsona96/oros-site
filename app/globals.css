@@ -162,6 +162,68 @@
   background-image: var(--scrim);
 }
 
+/*
+ * DESIGN.md §10 Motion: images fade up as they enter view, and the
+ * landing page's warmest sections (Services/Testimonials/Contact) ease
+ * from a cooler resting tone into their own already-static background as
+ * they scroll in — "the ascent," peaking at Contact. Pure CSS scroll-driven
+ * animations (`animation-timeline: view()`), same spirit as Hero's
+ * motion-reduce/motion-safe split: zero JS, and nothing can get stuck
+ * mid-animation on an unsupporting browser, because the `@supports` gate
+ * means it never leaves the plain static class already on the element to
+ * see a `from` keyframe at all.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .reveal {
+      animation: reveal-up linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 100%;
+    }
+
+    .ascent-subtle {
+      animation: ascent-to-subtle linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 100%;
+    }
+
+    .ascent-surface {
+      animation: ascent-to-surface linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 100%;
+    }
+  }
+}
+
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    translate: 0 24px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+@keyframes ascent-to-subtle {
+  from {
+    background-color: var(--app-bg);
+  }
+  to {
+    background-color: var(--app-bg-subtle);
+  }
+}
+
+@keyframes ascent-to-surface {
+  from {
+    background-color: var(--app-bg-subtle);
+  }
+  to {
+    background-color: var(--surface);
+  }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

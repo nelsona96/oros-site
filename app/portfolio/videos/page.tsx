@@ -12,7 +12,7 @@ export default async function VideosPage() {
       <Container className="space-y-8">
         <div>
           <Eyebrow>Portfolio</Eyebrow>
-          <Display as="h1" className="text-4xl md:text-5xl">
+          <Display as="h1" size="md">
             Videos.
           </Display>
         </div>

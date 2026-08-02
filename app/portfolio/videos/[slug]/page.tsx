@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Container } from "@/components/container";
 import { FilmPlayer } from "@/components/film-player";
 import { Section } from "@/components/section";
-import { Display } from "@/components/typography";
+import { Body, Display, Eyebrow } from "@/components/typography";
 import { categoryLabel, formatDuration } from "@/lib/film";
 import { getFilmBySlug } from "@/lib/sanity/queries";
 
@@ -41,7 +41,7 @@ export default async function FilmPage({
             box despite the parent's spacing utility. */}
         <Link
           href="/portfolio/videos"
-          className="ring-focus-ring rounded-control text-text-accent hover:text-text-primary inline-block font-mono text-xs tracking-widest uppercase transition-colors outline-none focus-visible:ring-2"
+          className="rounded-control text-text-accent hover:text-text-primary inline-block font-mono text-xs tracking-widest uppercase transition-colors"
         >
           Portfolio / Videos
         </Link>
@@ -49,18 +49,14 @@ export default async function FilmPage({
           <FilmPlayer film={film} />
         </div>
         <div className="space-y-2">
-          <Display as="h1" className="text-3xl md:text-4xl">
+          <Display as="h1" size="md">
             {film.title}
           </Display>
-          <p className="text-text-accent font-mono text-xs tracking-widest uppercase">
+          <Eyebrow>
             {categoryLabel(film.category)}
             {duration ? ` · ${duration}` : ""}
-          </p>
-          {film.description ? (
-            <p className="font-body text-text-secondary max-w-prose">
-              {film.description}
-            </p>
-          ) : null}
+          </Eyebrow>
+          {film.description ? <Body className="max-w-prose">{film.description}</Body> : null}
         </div>
       </Container>
     </Section>

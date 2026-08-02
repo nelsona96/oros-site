@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { urlFor } from "@/lib/sanity/image";
 import type { SiteSettings } from "@/lib/sanity/types";
-import { Display } from "./typography";
+import { Display, Eyebrow } from "./typography";
 
 /**
  * DESIGN.md §8.1: silent, looped, autoplaying, no controls, not clickable —
@@ -59,12 +59,10 @@ export function Hero({ settings }: { settings: SiteSettings | null }) {
       <div className="scrim absolute inset-0" />
 
       <div className="relative z-10 flex h-full flex-col items-center justify-end gap-3 px-6 pb-16 text-center md:pb-24">
-        <Display className="text-5xl text-text-primary md:text-7xl">{name}</Display>
-        {tagline ? (
-          <p className="font-mono text-xs tracking-widest text-text-secondary uppercase md:text-sm">
-            {tagline}
-          </p>
-        ) : null}
+        <Display size="xl" className="text-text-primary">
+          {name}
+        </Display>
+        {tagline ? <Eyebrow tone="secondary">{tagline}</Eyebrow> : null}
       </div>
     </section>
   );

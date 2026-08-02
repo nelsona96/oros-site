@@ -93,6 +93,24 @@
   --font-sans: var(--font-body);
   --font-heading: var(--font-display);
 
+  /*
+   * Fluid type scale — Phase 12c, tuned to Fraunces (Phase 12b). Each
+   * display tier interpolates between a mobile floor and a desktop ceiling
+   * directly off viewport width, replacing the old fixed text-Nxl +
+   * md:text-Nxl breakpoint jumps call sites used to hardcode individually.
+   */
+  --text-display-xl: clamp(3rem, 2.35rem + 3vw, 4.5rem);
+  --text-display-lg: clamp(2.5rem, 2.05rem + 2.25vw, 3.75rem);
+  --text-display-md: clamp(2.25rem, 1.95rem + 1.5vw, 3rem);
+  --text-display-sm: clamp(1.5rem, 1.35rem + 0.75vw, 1.875rem);
+  --text-body: 1rem;
+  --text-body-sm: 0.875rem;
+  --text-label: 0.75rem;
+
+  --leading-display: 1.1;
+  --leading-body: 1.65;
+  --tracking-display: -0.015em;
+
   --color-app-bg: var(--app-bg);
   --color-app-bg-subtle: var(--app-bg-subtle);
   --color-surface: var(--surface);
@@ -240,5 +258,26 @@
      * calendar icon on a dark input that's nearly invisible.
      */
     color-scheme: dark;
+  }
+
+  /*
+   * Phase 12c: a single global focus rule replaces the
+   * `outline-none focus-visible:ring-2 ring-focus-ring` triplet that used
+   * to be hand-repeated on every custom interactive element (links, filter
+   * pills, icon buttons). Split in two because the removed classes were:
+   * `outline-none` unconditionally (no outline on mouse-click :focus either,
+   * pre-empting a Safari outline flash), plus a ring drawn only under
+   * `:focus-visible` (keyboard nav). Deliberately bare pseudo-class rules
+   * (specificity 0,0,1,0) rather than Tailwind utilities: shadcn/Base UI
+   * components (Button, Input, Select, ...) already ship their own
+   * `focus-visible:ring-*` utility, which combines a class selector with the
+   * pseudo-class (0,0,2,0) and so still wins here — this only supplies the
+   * ring where nothing more specific already does.
+   */
+  :focus {
+    outline: none;
+  }
+  :focus-visible {
+    box-shadow: 0 0 0 2px var(--focus-ring);
   }
 }

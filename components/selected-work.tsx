@@ -34,13 +34,13 @@ export function SelectedWork({ photos, films }: { photos: Photo[]; films: Film[]
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <Eyebrow>Selected Work</Eyebrow>
-            <Display as="h2" className="text-4xl md:text-5xl">
+            <Display as="h2" size="md">
               A cross-vertical cut of recent work.
             </Display>
           </div>
           <Link
             href="/portfolio/photos"
-            className="ring-focus-ring rounded-control flex items-center gap-1 font-mono text-xs tracking-widest text-text-primary uppercase outline-none transition-colors hover:text-text-accent focus-visible:ring-2"
+            className="rounded-control flex items-center gap-1 font-mono text-xs tracking-widest text-text-primary uppercase transition-colors hover:text-text-accent"
           >
             View the full portfolio
             <Icon icon={ChevronRight} size={16} />
@@ -75,10 +75,10 @@ export function SelectedWork({ photos, films }: { photos: Photo[]; films: Film[]
                 className="border-border h-auto w-full border"
               />
               <div className="scrim absolute inset-0 flex items-end p-3">
-                <span className="flex items-center gap-1.5 font-mono text-xs tracking-widest text-text-primary uppercase">
+                <Eyebrow as="span" tone="primary" className="flex items-center gap-1.5">
                   <Icon icon={Play} size={14} />
                   Film
-                </span>
+                </Eyebrow>
               </div>
             </div>
           ))}

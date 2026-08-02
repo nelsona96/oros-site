@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Container } from "@/components/container";
 import { Section } from "@/components/section";
-import { Display, Eyebrow } from "@/components/typography";
+import { Body, Display, Eyebrow, Lead } from "@/components/typography";
 import { Ridgeline } from "@/components/ridgeline";
 import { RidgelineMark } from "@/components/ridgeline-mark";
 
@@ -88,7 +88,7 @@ export default function StyleguidePage() {
       <Container className="space-y-16 py-16">
         <header>
           <Eyebrow>Dev only — docs/DESIGN.md §3, §4 &amp; §5</Eyebrow>
-          <Display className="text-5xl">Styleguide</Display>
+          <Display size="lg">Styleguide</Display>
         </header>
 
         <Block title="Ridgeline mark">
@@ -182,19 +182,49 @@ export default function StyleguidePage() {
           </div>
         </Block>
 
-        <Block title="Typography components">
+        <Block title="Type scale — Phase 12c, tuned to Fraunces">
           <div className="space-y-6">
-            <div>
-              <Eyebrow>Display</Eyebrow>
-              <Display className="text-5xl">Scaling new heights in cinematic storytelling.</Display>
+            {(["xl", "lg", "md", "sm"] as const).map((size) => (
+              <div key={size}>
+                <Eyebrow>{`Display / ${size}`}</Eyebrow>
+                <Display size={size}>Scaling new heights in cinematic storytelling.</Display>
+              </div>
+            ))}
+            <div className="space-y-2">
+              <Eyebrow>Eyebrow — accent (default) / secondary / primary</Eyebrow>
+              <div className="flex flex-wrap gap-4">
+                <Eyebrow>Portfolio</Eyebrow>
+                <Eyebrow tone="secondary">Portfolio</Eyebrow>
+                <Eyebrow tone="primary">Portfolio</Eyebrow>
+              </div>
             </div>
-            <p className="font-body text-text-secondary max-w-prose">
-              Oros Productions is a photography and videography studio working across weddings,
-              commercial work, portraiture, and ministry film.
-            </p>
-            <p className="text-text-accent font-mono text-xs tracking-widest uppercase">
-              NIKON Z8 · 85MM · ƒ1.4 · 1/200
-            </p>
+            <div>
+              <Eyebrow>Lead</Eyebrow>
+              <Lead className="max-w-prose">
+                Weddings, commercial work, portraits, or ministry film — tell us what
+                you&rsquo;re planning.
+              </Lead>
+            </div>
+            <div>
+              <Eyebrow>Body</Eyebrow>
+              <Body className="max-w-prose">
+                Oros Productions is a photography and videography studio working across weddings,
+                commercial work, portraiture, and ministry film.
+              </Body>
+            </div>
+            <div>
+              <Eyebrow>Body / sm</Eyebrow>
+              <Body size="sm" className="max-w-prose">
+                Oros Productions is a photography and videography studio working across weddings,
+                commercial work, portraiture, and ministry film.
+              </Body>
+            </div>
+            <div>
+              <Eyebrow>Label — the mono metadata line</Eyebrow>
+              <p className="text-text-accent font-mono text-xs tracking-widest uppercase">
+                NIKON Z8 · 85MM · ƒ1.4 · 1/200
+              </p>
+            </div>
           </div>
         </Block>
 

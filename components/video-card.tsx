@@ -3,7 +3,7 @@ import Link from "next/link";
 import { categoryLabel, formatDuration } from "@/lib/film";
 import { urlFor } from "@/lib/sanity/image";
 import type { Film } from "@/lib/sanity/types";
-import { Display } from "./typography";
+import { Display, Eyebrow } from "./typography";
 
 const THUMBNAIL_WIDTH = 800;
 const THUMBNAIL_HEIGHT = 450;
@@ -31,7 +31,7 @@ export function VideoCard({ film }: { film: Film }) {
   return (
     <Link
       href={`/portfolio/videos/${film.slug}`}
-      className="ring-focus-ring rounded-control group block touch-manipulation outline-none focus-visible:ring-2"
+      className="rounded-control group block touch-manipulation"
     >
       <div className="reveal rounded-control bg-surface relative aspect-video overflow-hidden">
         <Image
@@ -61,12 +61,10 @@ export function VideoCard({ film }: { film: Film }) {
         ) : null}
       </div>
       <div className="mt-3 space-y-1">
-        <Display as="h3" className="text-text-primary text-xl md:text-2xl">
+        <Display as="h3" size="sm" className="text-text-primary">
           {film.title}
         </Display>
-        <p className="text-text-accent font-mono text-xs tracking-widest uppercase">
-          {categoryLabel(film.category)}
-        </p>
+        <Eyebrow>{categoryLabel(film.category)}</Eyebrow>
       </div>
     </Link>
   );

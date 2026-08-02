@@ -1,7 +1,7 @@
 import { categoryLabel, formatDuration } from "@/lib/film";
 import type { Film } from "@/lib/sanity/types";
 import { FilmPlayer } from "./film-player";
-import { Display } from "./typography";
+import { Body, Display, Eyebrow } from "./typography";
 import { VideoModalShell } from "./video-modal-shell";
 
 export function VideoModal({ film }: { film: Film }) {
@@ -14,16 +14,14 @@ export function VideoModal({ film }: { film: Film }) {
       </div>
 
       <div className="space-y-1">
-        <Display as="h2" className="text-text-primary text-2xl md:text-3xl">
+        <Display as="h2" size="sm" className="text-text-primary">
           {film.title}
         </Display>
-        <p className="text-text-accent font-mono text-xs tracking-widest uppercase">
+        <Eyebrow>
           {categoryLabel(film.category)}
           {duration ? ` · ${duration}` : ""}
-        </p>
-        {film.description ? (
-          <p className="font-body text-text-secondary">{film.description}</p>
-        ) : null}
+        </Eyebrow>
+        {film.description ? <Body>{film.description}</Body> : null}
       </div>
     </VideoModalShell>
   );

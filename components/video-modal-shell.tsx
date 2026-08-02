@@ -85,7 +85,7 @@ export function VideoModalShell({
                 ref={closeButtonRef}
                 type="button"
                 aria-label="Close"
-                className="ring-focus-ring rounded-control text-text-primary hover:text-text-accent absolute top-4 right-4 z-10 cursor-pointer touch-manipulation p-3 transition-opacity outline-none focus-visible:ring-2 sm:top-6 sm:right-6"
+                className="rounded-control text-text-primary hover:text-text-accent absolute top-4 right-4 z-10 cursor-pointer touch-manipulation p-3 transition-opacity sm:top-6 sm:right-6"
               />
             }
           >

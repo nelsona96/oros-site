@@ -1,5 +1,5 @@
 import { createElement } from "react";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { Film } from "@/lib/sanity/types";
 
@@ -56,6 +56,13 @@ describe("VideoModal", () => {
   it("shows just the category when duration is missing", () => {
     render(<VideoModal film={{ ...baseFilm, duration: undefined }} />);
     expect(screen.getByText("Weddings")).toBeInTheDocument();
+  });
+
+  it("moves focus to the close button on mount", async () => {
+    render(<VideoModal film={baseFilm} />);
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Close" })).toHaveFocus(),
+    );
   });
 
   it("calls router.back() when the close button is clicked", () => {

@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { X } from "lucide-react";
-import type { ReactNode } from "react";
+import { useRef, type ReactNode } from "react";
 import { Icon } from "./icon";
 import { Dialog, DialogClose, DialogContent, DialogTitle } from "./ui/dialog";
 
@@ -29,6 +29,16 @@ import { Dialog, DialogClose, DialogContent, DialogTitle } from "./ui/dialog";
  * darkening it to fully hide the grid would just be the photo lightbox's
  * treatment again, defeating the one thing DESIGN.md calls out as
  * different here.
+ *
+ * Because this opens via routing rather than a `Dialog.Trigger` click,
+ * Base UI has no trigger element to manage focus around, so without
+ * `initialFocus` it doesn't move focus into the dialog on mount — focus
+ * would just stay on whichever `VideoCard` link was clicked, stranding
+ * keyboard/screen-reader users outside the dialog they just opened. A plain
+ * `ref` + `useEffect` calling `.focus()` doesn't survive Base UI's own
+ * internal focus management running afterward and resetting it — this is
+ * Base UI's own documented mechanism for declaring the initial-focus target
+ * instead of fighting that internal behavior.
  */
 export function VideoModalShell({
   title,
@@ -38,6 +48,7 @@ export function VideoModalShell({
   children: ReactNode;
 }) {
   const router = useRouter();
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   return (
     <Dialog
@@ -48,6 +59,7 @@ export function VideoModalShell({
     >
       <DialogContent
         showCloseButton={false}
+        initialFocus={closeButtonRef}
         // `rounded-control` alone doesn't cancel the default `rounded-xl`: tailwind-merge
         // only recognizes standard Tailwind size names as conflicting within a class
         // group, and doesn't know about this project's custom `--radius-control` theme
@@ -64,6 +76,7 @@ export function VideoModalShell({
         <DialogClose
           render={
             <button
+              ref={closeButtonRef}
               type="button"
               aria-label="Close"
               className="ring-focus-ring rounded-control text-text-primary hover:text-text-accent absolute top-2 right-2 z-10 cursor-pointer touch-manipulation p-3 transition-opacity outline-none focus-visible:ring-2"

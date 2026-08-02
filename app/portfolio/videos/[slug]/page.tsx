@@ -1,8 +1,9 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { Container } from "@/components/container";
 import { FilmPlayer } from "@/components/film-player";
 import { Section } from "@/components/section";
-import { Display, Eyebrow } from "@/components/typography";
+import { Display } from "@/components/typography";
 import { categoryLabel, formatDuration } from "@/lib/film";
 import { getFilmBySlug } from "@/lib/sanity/queries";
 
@@ -20,7 +21,15 @@ export default async function FilmPage({
   return (
     <Section className="pt-8 md:pt-12">
       <Container className="space-y-6">
-        <Eyebrow>Portfolio / Videos</Eyebrow>
+        {/* A direct-visit/shared-link landing has no modal-close or back button to return to the
+            grid with — the top tab bar can do it, but a same-purpose breadcrumb one tap away is
+            more discoverable than expecting a visitor to notice "Videos" is also a nav link. */}
+        <Link
+          href="/portfolio/videos"
+          className="ring-focus-ring rounded-control text-text-accent hover:text-text-primary font-mono text-xs tracking-widest uppercase transition-colors outline-none focus-visible:ring-2"
+        >
+          Portfolio / Videos
+        </Link>
         <div className="rounded-control bg-surface relative aspect-video overflow-hidden">
           <FilmPlayer film={film} />
         </div>

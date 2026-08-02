@@ -1,3 +1,6 @@
+"use client";
+
+import { useRef } from "react";
 import Image from "next/image";
 import { urlFor } from "@/lib/sanity/image";
 import type { Photo } from "@/lib/sanity/types";
@@ -24,18 +27,53 @@ const FILLER_COUNT = 5;
  * growth instead, on whichever row has room for them (harmless no-ops on
  * every row that's already full). If this ever proves insufficient in
  * practice, `react-photo-album` is the named fallback, not a rewrite.
+ *
+ * Each photo is a real `<button>` (not a div with a click handler bolted
+ * on) so it's keyboard-focusable and activates on Enter/Space for free;
+ * its accessible name comes from the image's own required alt text. Arrow
+ * Left/Right additionally rove focus directly between photos — sequential
+ * Tab still works, but stepping through a wall of images one Tab at a time
+ * is a slog, and arrow keys are the expected pattern for a grid of peers.
+ *
+ * The focus ring is a normal (outset) ring, not `ring-inset`: an inset
+ * box-shadow paints with the button's own background, which is a step that
+ * happens *before* its children paint — so it was rendering underneath the
+ * full-bleed photo and never actually visible. An outset ring draws outside
+ * the box entirely, clear of the image regardless of paint order.
  */
-export function JustifiedGrid({ photos }: { photos: Photo[] }) {
+export function JustifiedGrid({
+  photos,
+  onPhotoClick,
+}: {
+  photos: Photo[];
+  onPhotoClick: (index: number) => void;
+}) {
+  const buttonRefs = useRef<(HTMLButtonElement | null)[]>([]);
+
   if (photos.length === 0) return null;
 
   return (
     <div className="flex flex-wrap gap-1 [--row-h:200px] sm:[--row-h:260px] lg:[--row-h:320px]">
-      {photos.map((photo) => {
+      {photos.map((photo, index) => {
         const { aspectRatio } = photo.image.asset.metadata.dimensions;
         return (
-          <div
+          <button
             key={photo._id}
-            className="relative min-w-0"
+            ref={(el) => {
+              buttonRefs.current[index] = el;
+            }}
+            type="button"
+            onClick={() => onPhotoClick(index)}
+            onKeyDown={(event) => {
+              if (event.key === "ArrowRight") {
+                event.preventDefault();
+                buttonRefs.current[index + 1]?.focus();
+              } else if (event.key === "ArrowLeft") {
+                event.preventDefault();
+                buttonRefs.current[index - 1]?.focus();
+              }
+            }}
+            className="ring-focus-ring touch-manipulation relative min-w-0 cursor-pointer outline-none focus-visible:z-10 focus-visible:ring-2"
             style={{
               flexGrow: aspectRatio,
               flexBasis: `calc(var(--row-h) * ${aspectRatio})`,
@@ -51,7 +89,7 @@ export function JustifiedGrid({ photos }: { photos: Photo[] }) {
               blurDataURL={photo.image.asset.metadata.lqip}
               className="object-cover"
             />
-          </div>
+          </button>
         );
       })}
       {Array.from({ length: FILLER_COUNT }, (_, i) => (

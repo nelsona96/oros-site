@@ -133,3 +133,139 @@ tracing it back (`gold-9`).
   sub-phases like `5a`/`5b` when a phase would blow past it — see
   `docs/BUILD_PLAN.md`'s already-split phases for the pattern). PR
   descriptions are written and filled in via `gh pr edit`, never left blank.
+
+---
+
+# Established patterns (Phases 6-8)
+
+Same framing as above: how it's wired, not why. Phases 6-8 built the landing
+page (hero, selected work, services, about summary, testimonials, contact
+CTA) and the portfolio Photos tab (justified grid, category filters,
+lightbox).
+
+## Page composition & data fetching
+
+- Landing/portfolio pages (`app/page.tsx`, `app/portfolio/photos/page.tsx`)
+  are `async` Server Components that `Promise.all([...])` every Sanity query
+  the page needs in parallel, then pass the resolved data down as props to
+  presentational/client components. Never fetch inside a client component.
+- Components whose content comes from optional Sanity data (`SelectedWork`,
+  `Services`, `Testimonials`, `AboutSummary`, the Instagram link in
+  `ContactCta`) **self-guard**: they return `null` when their required data
+  is empty/missing. The page composing them doesn't check first.
+- Prefer **client-side filtering over an already-fetched list** to a
+  `category`/similar search param + Server Component refetch, whenever the
+  interaction should feel instant rather than deep-linkable. A search param
+  forces the whole page to dynamically re-render server-side on every tap,
+  which reads as a page reload, not a filter flipping — this is why
+  `CategoryFilter`/`PhotoGallery` fetch every photo once and filter
+  client-side instead of re-querying Sanity per category. Trade-off:
+  filtered views aren't shareable URLs. Worth it only when instant feedback
+  matters more than that.
+- Section headers pair `<Eyebrow>` (small label) with `<Display as="h2">`
+  (the actual heading) — see any of the Phase 7 landing sections. Section
+  backgrounds alternate `bg-app-bg` (default) / `bg-app-bg-subtle` (banded)
+  down the page, warming to `bg-surface` only at the Contact CTA (the
+  "warmest" surface, per DESIGN.md §3's ascent). `<Ridgeline position={n} />`
+  dividers sit between major sections with varied `position` values so
+  repeated dividers don't look mechanically identical.
+
+## next/image & preloading
+
+- Standard image src: `urlFor(image).width(w).quality(q).url()` passed as
+  `src`. For content that should progressively blur-up on its own first
+  paint (grid thumbnails, portraits), use `placeholder="blur"
+  blurDataURL={image.asset.metadata.lqip}`.
+- **Don't use `placeholder="blur"` for an image that gets swapped/revisited
+  in the same session** (e.g. a lightbox) — replaying the blur-up on every
+  switch reads as a flicker, not progressive loading. Use a spinner +
+  opacity fade-in instead, and see the remounting gotcha below.
+- Use the `preload` prop, not the deprecated `priority` prop, on
+  `next/image` in this Next version (`priority` still works but warns).
+- `getImageProps` (from `next/image`) computes the same `src`/`srcSet`
+  next/image would use, without mounting a component — use it to build
+  `<link rel="preload" as="image" imageSrcSet={...} imageSizes={...}>` hints
+  that warm the browser cache ahead of when the real `<Image>` mounts (see
+  `components/photo-gallery.tsx`'s `LightboxPreloadLinks`). React 19 hoists
+  `<link>`/`<meta>` rendered anywhere in the component tree into `<head>`
+  automatically — no `next/head` needed.
+- **Never `key`-remount an `<Image>` (or a component wrapping one) that the
+  user might navigate back to.** This looks like it should follow the
+  "reset state via `key`" pattern below (Testing gotchas) — it's the one
+  exception. A `key` change unmounts and remounts, resetting all local
+  state (including "have I loaded before") even when the browser has the
+  bytes cached — the visual result is a spinner flash on every revisit,
+  which reads as "it reloaded" even though nothing was refetched. Prefer
+  stacking every candidate as its own persistent, never-remounted layer and
+  toggling visibility (see `components/photo-gallery.tsx`'s
+  `LightboxPhotoLayer`): each layer's `loaded` state is set once and never
+  reset, so a photo shows its spinner at most once per session.
+
+## shadcn / Base UI gotchas
+
+- `components/ui/*` stays vendored — override styling via `className` at
+  the call site (tailwind-merge cancels conflicting default utilities).
+  When overriding a positioning/sizing utility, override **every**
+  conflicting default explicitly rather than assuming one override is
+  enough — e.g. cancelling a default `w-full` needs an explicit `w-auto` in
+  your override, not just a `max-w-none`. An unresolved mix of your
+  override and a leftover default is a real, easy-to-miss layout bug (see
+  `components/photo-gallery.tsx`'s `DialogContent` className), not just
+  visual noise.
+- A Base UI component composed onto a non-native element via the `render`
+  prop (e.g. shadcn's `Button` rendered as a `next/link` `Link`) needs
+  `nativeButton={false}` explicitly, or Base UI both warns and drops real
+  button semantics. With it set, the resulting element correctly exposes
+  `role="button"` (its visual affordance) while keeping real `<a href>`
+  navigation — query it by that role in tests, not `"link"`.
+- `npx shadcn add <name>` skips re-writing files that would be identical
+  (e.g. adding `dialog.tsx`, which depends on `button.tsx`, won't clobber
+  an existing `button.tsx`) — safe to run again for a new component.
+- `lucide-react` in this installed version has **no brand/logo icons**
+  (`Instagram` etc. were removed upstream) despite DESIGN.md §6 listing
+  Instagram as allowed. Use a semantically-equivalent icon instead (we used
+  `ExternalLink` for an outbound social link) rather than adding a second
+  icon library for one glyph.
+
+## CSS gotchas
+
+- **`ring-inset` can be invisible, not just low-contrast.** An inset
+  box-shadow paints in the same step as an element's own background —
+  *before* its children paint. A full-bleed child (e.g. a photo filling a
+  button) will completely cover it, even though it's present in devtools.
+  Use a normal (outset) ring on any interactive element with a full-bleed
+  child (see `components/justified-grid.tsx`).
+- The justified photo grid (`components/justified-grid.tsx`) is pure CSS:
+  `flex-wrap` + `flex-grow`/`flex-basis` proportional to each image's real
+  aspect ratio, with a `--row-h` CSS custom property (responsive per
+  breakpoint) driving the `calc()` math. Trailing zero-height filler
+  elements (`flex-grow: 999`) fix the classic "short last row stretches to
+  fill the line" problem — the standard CSS-only workaround for this
+  technique.
+- `touch-manipulation` on custom interactive elements (real `<button>`s,
+  not `<Link>`s) is cheap, standard practice for mobile — but see the
+  testing note below before assuming it fixes a reported mobile bug.
+
+## Testing & mobile-debugging gotchas
+
+- `element.click()` / `fireEvent.click(node)` on a specific DOM node
+  bypasses real hit-testing — it cannot catch "something else is actually
+  on top of this element." When a covering-element bug is suspected, use
+  `document.elementFromPoint(x, y)` instead, which respects real stacking.
+- **A "works on desktop, broken on mobile" interactivity report may be a
+  dev-server artifact, not a code bug.** `next dev`'s unminified Turbopack
+  bundle and HMR client are slow/fragile on mobile CPUs and some networks —
+  native `<Link>`s (real `<a href>`, work without JS) can appear fine while
+  every custom `onClick` handler is silently dead because hydration never
+  finished. Before spending more time on a mobile-only bug, ask whether it
+  was tested against `next dev` or a production build (`npm run build &&
+  npm run start`) — this exact investigation (Phase 8b) turned out to be
+  dev-server-only, not a bug in the component code at all.
+- `next/image`'s `onLoad` is deferred behind an internal `img.decode()`
+  promise — `fireEvent.load(img)` won't synchronously flip state in a test;
+  wrap the assertion in `waitFor(...)`.
+- "Reset state when a prop changes" is a `key`-remount job, not a
+  `useEffect` — `setState` called unconditionally in an effect body trips
+  the `react-hooks/set-state-in-effect` lint rule. Seen more than once in
+  this build: extract the piece that needs to reset into its own component
+  and give it `key={theChangingValue}` instead.

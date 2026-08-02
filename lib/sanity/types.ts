@@ -1,5 +1,13 @@
 export type Category = "weddings" | "commercial" | "portrait" | "ministry";
 
+/** DESIGN.md §9's exact filter order and labels: Weddings / Commercial / Portrait / Ministry. */
+export const CATEGORIES: { value: Category; label: string }[] = [
+  { value: "weddings", label: "Weddings" },
+  { value: "commercial", label: "Commercial" },
+  { value: "portrait", label: "Portrait" },
+  { value: "ministry", label: "Ministry" },
+];
+
 /**
  * Every queried image resolves to this shape — asset dimensions and an LQIP
  * are always selected (see docs/SPEC.md §3) so next/image never causes

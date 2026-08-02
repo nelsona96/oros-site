@@ -1,5 +1,5 @@
 import { Container } from "@/components/container";
-import { JustifiedGrid } from "@/components/justified-grid";
+import { PhotoGallery } from "@/components/photo-gallery";
 import { Section } from "@/components/section";
 import { Display, Eyebrow } from "@/components/typography";
 import { getPhotos } from "@/lib/sanity/queries";
@@ -16,7 +16,7 @@ export default async function PhotosPage() {
             Photos.
           </Display>
         </div>
-        <JustifiedGrid photos={photos} />
+        <PhotoGallery photos={photos} />
       </Container>
     </Section>
   );

@@ -455,3 +455,76 @@ documents is `scripts/seed.ts` or the Studio UI, a completely separate
 concern. A schema change that adds a field (rather than renaming/removing
 one) is safe to deploy anytime; existing documents just show the new field
 empty until someone fills it in in Studio.
+
+Phase 10b built `/contact` — the form, `/api/contact`, and the first real
+`shadcn add` run since Phase 2b (Button/Dialog only, until now).
+
+## shadcn / Base UI gotchas (continued)
+
+- **`npx shadcn add sonner` pulls in `next-themes`** — its generated
+  `components/ui/sonner.tsx` calls `useTheme()` from it to pick light/dark.
+  SPEC.md §1 explicitly rules `next-themes` out (dark-only, committed via
+  `<html className="dark">`). Fix at the vendored file: drop the
+  `useTheme()` call, hardcode `theme="dark"` on the `<Sonner>` prop, then
+  `npm uninstall next-themes`. Check any future `shadcn add` output for the
+  same import before assuming the generated file is drop-in.
+- **`npx shadcn add form` is a no-op under this project's `base-nova`
+  style** — `npx shadcn add form --view` reports "No files." There's no
+  vendored `form.tsx`/`FormField`/`FormMessage` layer the way classic
+  shadcn styles have one; Base UI's philosophy is compositional, so forms
+  are wired by hand with `react-hook-form` directly against the vendored
+  `Input`/`Textarea`/`Label`/`Select` — `useForm` + `register()` for plain
+  inputs, `Controller` for `Select` (a Base UI `Select.Root`, not a native
+  `<select>`, so it can't take `register()`). See `components/contact-form.tsx`.
+- **Base UI's `Select` needs an `items` prop to show the right label after
+  a choice is made**, if you're using declarative `<Select.Item>` children
+  (the shadcn-generated pattern) rather than the `items`-array API. Without
+  it, the trigger's `<Select.Value>` falls back to stringifying the raw
+  stored value once the popup (and its `<Select.Item>`s) unmounts — e.g.
+  showing `"commercial"` instead of `"Commercial"`. Confirmed as a real
+  browser bug, not just a test artifact: pass `items={Object.fromEntries(...)}`
+  (value → label) to `Select`/`Select.Root` alongside the `<SelectItem>`
+  children — see `INQUIRY_TYPE_ITEMS` in `components/contact-form.tsx`.
+- **Base UI `Select` switching from uncontrolled to controlled logs a React
+  warning** if a `react-hook-form`-controlled field's initial value is
+  `undefined` (RHF's own default for a field with no `defaultValues` entry)
+  and later becomes a real string — Base UI decides controlled-vs-not from
+  whether the *first* render's value is `undefined`. Fix: pass
+  `value={field.value ?? ""}` (not the bare `field.value`) so the first
+  render is already controlled with a defined "nothing selected" value;
+  `<Select.Value>` treats `""` the same as `null`/`undefined` for showing
+  the placeholder.
+- **Clicking a `<Select.Item>` other than the first one doesn't register in
+  jsdom/Testing Library**, even though it works correctly in a real browser
+  (verified manually against a live dev server after fixing the `items`
+  issue above) — `fireEvent.click()` on the first item selects it fine, but
+  the same call on the second+ item leaves the popup open and the value
+  unchanged. Root cause not isolated (likely Base UI's pointer-based
+  highlight tracking not initializing the way a real browser's pointer
+  events do). Workaround, not a fix: when a test only needs *some* value
+  selected — not that specific option's behavior — pick the first item.
+  See `selectInquiryType` in `components/contact-form.test.tsx`.
+- **Base UI's `Select` measures the trigger's width once and doesn't
+  re-measure it if the window resizes while the popup is closed.**
+  Confirmed by hand: open the popup at a wide viewport (so the trigger is
+  wide), close it, shrink the browser window *without reloading*, reopen —
+  the popup still renders at the old, wider size and pokes off the right
+  edge of the now-narrower viewport. This is a real, resize-a-live-window
+  bug, not a test artifact (this project's `Browser` pane tool's
+  `resize_window` doesn't always fire a real `resize` DOM event either,
+  which briefly looked like the fix wasn't working — dispatching one by
+  hand confirmed it does). Fix: `key`-remount the `Select` on a real width
+  change so it re-measures fresh next time it opens — bucket and debounce
+  the resize listener so a window drag doesn't remount on every pixel. See
+  `useLayoutWidthBucket` in `components/contact-form.tsx`. Also cap the
+  trigger's own container width (`max-w-xl` on `/contact`'s form column,
+  previously an uncapped `1fr` grid track) so the *ceiling* of how wide it
+  can ever get is reasonable regardless.
+
+## Env vars & secrets (continued)
+
+- Resend needs a **verified sending domain** to send `from` a real address;
+  until Phase 13 sets one up, `/api/contact` sends from Resend's shared
+  sandbox address (`onboarding@resend.dev`) — sending still works today,
+  delivery just isn't from `@oros...` yet. Swap `FROM_ADDRESS` in
+  `app/api/contact/route.ts` once a domain is verified.

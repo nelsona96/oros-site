@@ -57,6 +57,7 @@ const TESTIMONIALS = [
     role: "Wedding client",
     category: "weddings",
     order: 1,
+    picsumId: 1011,
   },
   {
     slug: "placeholder-2",
@@ -65,6 +66,7 @@ const TESTIMONIALS = [
     role: "Marketing lead",
     category: "commercial",
     order: 2,
+    picsumId: 1012,
   },
   {
     slug: "placeholder-3",
@@ -73,6 +75,7 @@ const TESTIMONIALS = [
     role: "Worship pastor",
     category: "ministry",
     order: 3,
+    picsumId: 1013,
   },
 ];
 
@@ -106,11 +109,15 @@ const SERVICES = [
 ];
 
 async function uploadPicsumImage(photo: PlaceholderPhoto) {
-  const url = `https://picsum.photos/id/${photo.picsumId}/${photo.width}/${photo.height}`;
+  return uploadPicsumImageById(photo.picsumId, photo.width, photo.height);
+}
+
+async function uploadPicsumImageById(picsumId: number, width: number, height: number) {
+  const url = `https://picsum.photos/id/${picsumId}/${width}/${height}`;
   const res = await fetch(url);
-  if (!res.ok) throw new Error(`Failed to fetch Picsum image ${photo.picsumId}: ${res.status}`);
+  if (!res.ok) throw new Error(`Failed to fetch Picsum image ${picsumId}: ${res.status}`);
   const buffer = Buffer.from(await res.arrayBuffer());
-  return client.assets.upload("image", buffer, { filename: `placeholder-${photo.picsumId}.jpg` });
+  return client.assets.upload("image", buffer, { filename: `placeholder-${picsumId}.jpg` });
 }
 
 async function seedPhotos() {
@@ -134,12 +141,18 @@ async function seedPhotos() {
 
 async function seedTestimonials() {
   for (const t of TESTIMONIALS) {
+    const asset = await uploadPicsumImageById(t.picsumId, 400, 400);
     await client.createOrReplace({
       _id: `seed-testimonial-${t.slug}`,
       _type: "testimonial",
       quote: t.quote,
       attribution: t.attribution,
       role: t.role,
+      image: {
+        _type: "image",
+        asset: { _type: "reference", _ref: asset._id },
+        alt: "Placeholder headshot — replace with a real client photo",
+      },
       category: t.category,
       order: t.order,
     });

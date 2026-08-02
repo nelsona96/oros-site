@@ -131,6 +131,7 @@ and `asset->metadata.lqip` (blur placeholder).
 | `category` | string (list of 4) | Required |
 | `video` | `mux.video` | Required |
 | `thumbnail` | image (hotspot) | Optional hand-picked frame; falls back to Mux's generated poster |
+| `captions` | file (`.vtt`) | Optional; required in practice for ministry and wedding films per DESIGN.md §11. Rendered as a `<track>` on the player when present |
 | `description` | text | Optional |
 | `client` | string | Optional |
 | `date` | date | |
@@ -142,7 +143,8 @@ by hand.
 
 ### `testimonial`
 `quote` (text, required) · `attribution` (string, required) · `role` (string) ·
-`category` (optional) · `order` (number)
+`image` (optional, hotspot — required `alt` when present) · `category` (optional) ·
+`order` (number)
 
 ### `service`
 `title` · `slug` · `blurb` (text) · `order` · `coverImage` (optional)

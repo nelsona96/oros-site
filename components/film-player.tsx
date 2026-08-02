@@ -52,6 +52,10 @@ export function FilmPlayer({ film }: { film: Film }) {
           "--media-focus-box-shadow": "inset 0 0 0 2px var(--light-solid)",
         } satisfies MuxPlayerCSSProperties
       }
-    />
+    >
+      {film.captionsUrl && (
+        <track kind="captions" src={film.captionsUrl} srcLang="en" label="English" default />
+      )}
+    </MuxPlayer>
   );
 }

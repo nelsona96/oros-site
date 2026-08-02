@@ -13,8 +13,11 @@ vi.mock("@/lib/rate-limit", () => ({
 const validBody = {
   name: "Jamie",
   email: "jamie@example.com",
+  phone: "555-0100",
   inquiryType: "weddings",
+  location: "Asheville, NC",
   eventDate: "2026-09-12",
+  budget: "$5,000–$10,000",
   message: "We're planning a fall wedding and would love to talk about coverage.",
   company: "",
 };
@@ -82,8 +85,30 @@ describe("POST /api/contact", () => {
         to: "studio@example.com",
         replyTo: "jamie@example.com",
         subject: expect.stringContaining("Weddings"),
+        text: expect.stringContaining("Phone: 555-0100"),
       }),
     );
+  });
+
+  it("includes location and budget in the email body when provided", async () => {
+    const { POST } = await import("./route");
+    await POST(request(validBody));
+    const sentText = sendMock.mock.calls[0][0].text as string;
+    expect(sentText).toContain("Location: Asheville, NC");
+    expect(sentText).toContain("Budget: $5,000–$10,000");
+  });
+
+  it("omits optional fields from the email body when they aren't provided", async () => {
+    const minimalBody = { ...validBody };
+    delete (minimalBody as Partial<typeof validBody>).phone;
+    delete (minimalBody as Partial<typeof validBody>).location;
+    delete (minimalBody as Partial<typeof validBody>).budget;
+    const { POST } = await import("./route");
+    await POST(request(minimalBody));
+    const sentText = sendMock.mock.calls[0][0].text as string;
+    expect(sentText).not.toContain("Phone:");
+    expect(sentText).not.toContain("Location:");
+    expect(sentText).not.toContain("Budget:");
   });
 
   it("502s when Resend reports an error", async () => {

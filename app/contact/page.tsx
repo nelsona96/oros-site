@@ -10,17 +10,17 @@ export default async function ContactPage() {
 
   return (
     <Section className="pt-8 md:pt-12">
-      <Container className="grid grid-cols-1 gap-12 md:grid-cols-[1fr_minmax(0,320px)]">
-        <div className="max-w-xl space-y-8">
-          <div>
+      <Container>
+        <div className="mx-auto max-w-xl space-y-10">
+          <div className="space-y-4 text-center">
             <Eyebrow>Contact</Eyebrow>
             <Display as="h1" className="text-4xl md:text-5xl">
               Let&rsquo;s build something worth remembering.
             </Display>
           </div>
           <ContactForm />
+          <ContactInfo settings={settings} />
         </div>
-        <ContactInfo settings={settings} />
       </Container>
     </Section>
   );

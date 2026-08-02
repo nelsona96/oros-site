@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { contactSchema, type ContactFormValues } from "@/lib/contact-schema";
+import { BUDGET_RANGES, contactSchema, type ContactFormValues } from "@/lib/contact-schema";
 import { CATEGORIES } from "@/lib/sanity/types";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -62,7 +62,7 @@ export function ContactForm() {
     formState: { errors, isSubmitting },
   } = useForm<ContactFormValues>({
     resolver: zodResolver(contactSchema),
-    defaultValues: { name: "", email: "", eventDate: "", message: "", company: "" },
+    defaultValues: { name: "", email: "", phone: "", location: "", eventDate: "", message: "", company: "" },
   });
 
   async function onSubmit(values: ContactFormValues) {
@@ -111,6 +111,11 @@ export function ContactForm() {
       </div>
 
       <div className={FIELD_CLASSES}>
+        <Label htmlFor="phone">Phone (optional)</Label>
+        <Input id="phone" type="tel" {...register("phone")} />
+      </div>
+
+      <div className={FIELD_CLASSES}>
         <Label htmlFor="inquiryType">What&rsquo;s this about?</Label>
         <Controller
           control={control}
@@ -144,8 +149,41 @@ export function ContactForm() {
       </div>
 
       <div className={FIELD_CLASSES}>
+        <Label htmlFor="location">Location or venue (optional)</Label>
+        <Input id="location" {...register("location")} />
+      </div>
+
+      <div className={FIELD_CLASSES}>
         <Label htmlFor="eventDate">Event date (optional)</Label>
-        <Input id="eventDate" type="date" {...register("eventDate")} />
+        {/*
+         * A free-text field, not a date picker — plenty of inquiries come in
+         * before a date's locked ("next spring", "TBD"), and it's read by a
+         * person for triage, never parsed. Sidesteps the native date
+         * input's dark-mode icon and confusing segmented-entry UX entirely.
+         */}
+        <Input id="eventDate" placeholder="e.g. June 14, 2026, or “TBD”" {...register("eventDate")} />
+      </div>
+
+      <div className={FIELD_CLASSES}>
+        <Label htmlFor="budget">Budget range (optional)</Label>
+        <Controller
+          control={control}
+          name="budget"
+          render={({ field }) => (
+            <Select key={layoutWidthBucket} value={field.value ?? ""} onValueChange={field.onChange}>
+              <SelectTrigger id="budget" className="w-full">
+                <SelectValue placeholder="Choose a range" />
+              </SelectTrigger>
+              <SelectContent alignItemWithTrigger={false}>
+                {BUDGET_RANGES.map((range) => (
+                  <SelectItem key={range} value={range}>
+                    {range}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        />
       </div>
 
       <div className={FIELD_CLASSES}>

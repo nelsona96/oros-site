@@ -24,7 +24,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const { name, email, inquiryType, eventDate, message, company } = parsed.data;
+  const { name, email, phone, inquiryType, location, eventDate, budget, message, company } = parsed.data;
 
   // Honeypot tripped — report success without sending, so a bot gets no
   // signal that it was caught and no reason to adapt.
@@ -47,8 +47,11 @@ export async function POST(request: Request) {
     text: [
       `Name: ${name}`,
       `Email: ${email}`,
+      phone ? `Phone: ${phone}` : null,
       `Inquiry type: ${categoryLabel(inquiryType)}`,
+      location ? `Location: ${location}` : null,
       eventDate ? `Event date: ${eventDate}` : null,
+      budget ? `Budget: ${budget}` : null,
       "",
       message,
     ]

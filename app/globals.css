@@ -171,5 +171,12 @@
   }
   html {
     @apply font-sans;
+    /*
+     * Dark-only site (docs/SPEC.md §1, no next-themes) — without this,
+     * native form-control chrome (date/time picker icons, scrollbars)
+     * renders with browser-default *light*-mode assets, e.g. a black
+     * calendar icon on a dark input that's nearly invisible.
+     */
+    color-scheme: dark;
   }
 }

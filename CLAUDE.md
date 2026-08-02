@@ -129,22 +129,46 @@ tracing it back (`gold-9`).
   config) — excluded from the root `tsconfig.json` and root
   `eslint.config.mjs`. Don't add Studio source files to root's lint/type
   scope, and don't add root dependencies to `studio/package.json`.
-- Branching/PRs: Graphite stacks, ~400-line soft budget per PR (split into
-  sub-phases like `5a`/`5b` when a phase would blow past it — see
-  `docs/BUILD_PLAN.md`'s already-split phases for the pattern). PR
-  descriptions are written and filled in via `gh pr edit`, never left blank.
-  Branch names follow `phase-<N><letter>-<slug>` (e.g. `phase-9a-videos-feed`,
-  `phase-8b-filters-lightbox`) — check `gh pr list --state merged` for the
-  established slug style before naming a new one.
-- **Merging a stacked PR chain: retarget before you delete, not after.**
-  Deleting a merged PR's branch with `gh pr merge --delete-branch` does
-  **not** retarget any open PR still stacked on top of it to `main` — GitHub
-  auto-*closes* that PR instead (its base branch just vanished out from under
-  it), and a closed PR can't be reopened once its base is gone. Recovery is
-  just opening a fresh PR from the same still-intact branch against `main`
-  (no commits are lost — the branch itself was never touched), but it's
-  avoidable: `gh pr edit <next-pr> --base main` *before* merging/deleting the
-  branch below it, working from the bottom of the stack up.
+
+### Graphite stacked-PR workflow — follow strictly, alongside `docs/BUILD_PLAN.md`'s phases
+
+Every phase or sub-phase (`5a`/`5b`, `9a`/`9b` style — split when a phase
+would blow past the ~400-line soft budget per PR, see `docs/BUILD_PLAN.md`'s
+already-split phases for the pattern) goes through this exact sequence. Use
+the `gt` command at every step that has one — substituting plain `git
+push`/`gh pr create`/`gh pr merge` for the `gt` equivalent is what caused a
+stacked-PR merge to go wrong once already (step 5 below explains why).
+
+1. **Implement.** `gt create` off the *previous phase's branch*, not `main`
+   — a stack, never branching straight off trunk for a sub-phase.
+2. **Wait for approval of the implementation** before doing anything below.
+   Don't submit, open a PR, or merge unprompted.
+3. **Submit, once approved:** `gt submit` (or `gt submit --stack` for the
+   whole stack at once). Fill out the PR body immediately against
+   `.github/PULL_REQUEST_TEMPLATE.md` via `gh pr edit` — never leave it
+   blank. Branch names follow `phase-<N><letter>-<slug>` (e.g.
+   `phase-9a-videos-feed`) — check `gh pr list --state merged` for the
+   established slug style before naming a new one.
+4. **Wait for approval again before merging.** Submitting is a separate
+   approval from merging — being told to open/update a PR is not permission
+   to merge it, even once CI is green. Say it's ready and stop.
+5. **Merge with `gt merge`, never `gh pr merge` PR-by-PR.** `gt merge`
+   understands the whole stack and merges/retargets it correctly in one
+   operation. Manually merging one PR at a time with `gh pr merge
+   --delete-branch` broke a stack here: deleting a merged PR's branch does
+   **not** retarget the next PR in the stack to `main` — GitHub auto-*closes*
+   it instead (its base branch just vanished out from under it), and a
+   closed PR can't be reopened once that's happened. (Recovery, if it does
+   happen again: open a fresh PR from the same still-intact branch against
+   `main` — no commits are lost, the branch itself was never touched.)
+6. **Clean up with `gt sync` afterward**, not manual branch deletion — it
+   prompts to delete merged/closed branches and restacks whatever's left.
+
+**Maintaining this file:** when you hit a workflow, tooling, or consistency
+gotcha a future agent would otherwise rediscover the hard way — not a
+one-off — add it to the relevant section here proactively, in this same
+concise/reference style, without waiting to be asked. Tell the user in your
+response, briefly, that you did and what you added.
 
 ---
 

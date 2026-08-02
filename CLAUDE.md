@@ -162,12 +162,17 @@ stacked-PR merge to go wrong once already (step 5 below explains why).
    happen again: open a fresh PR from the same still-intact branch against
    `main` — no commits are lost, the branch itself was never touched.)
 6. **Clean up with `gt sync --delete-all` afterward.** It restacks whatever's
-   left and deletes the *local* branch for anything merged/closed — but not
-   its remote counterpart (confirmed: the branch stayed on GitHub after
-   `gt sync` reported it deleted). Finish with `git push origin --delete
-   <branch>` per merged branch, and confirm with `git ls-remote --heads
-   origin` — don't trust `git branch -a`'s cached remote-tracking refs for
-   this, they can lag behind what's actually on GitHub.
+   left and deletes the *local* branch for anything merged/closed. The repo's
+   GitHub setting "Automatically delete head branches" is **on**, so the
+   remote branch is gone the moment a PR merges — no separate remote-cleanup
+   step needed. (Before this was enabled, `gt sync` only deleted branches
+   locally — `gt branch delete --help` says as much, "does not perform any
+   action on GitHub or the remote repository," and there's no `gt` command
+   that does; confirmed a merged branch stayed on GitHub after `gt sync`
+   reported it deleted, back when this setting was off. If it's ever off
+   again for some reason, fall back to `git push origin --delete <branch>`,
+   verified with `git ls-remote --heads origin` — not the locally-cached
+   `git branch -a`, which can lag behind what's actually on GitHub.)
 
 **Maintaining this file:** when you hit a workflow, tooling, or consistency
 gotcha a future agent would otherwise rediscover the hard way — not a

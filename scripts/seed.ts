@@ -184,6 +184,9 @@ async function seedSiteSettings() {
     heroPoster: { _type: "image", asset: { _type: "reference", _ref: heroPosterAsset._id } },
     aboutHeading: "Placeholder heading — replace with the real about copy",
     aboutBody: "Placeholder body copy — replace with the real about copy.",
+    aboutLongForm:
+      "Placeholder long-form copy — replace with the real about page content.\n\n" +
+      "Placeholder second paragraph, including where the faith/mission paragraph goes.",
   });
   console.log("  siteSettings (hero loop + poster)");
 }

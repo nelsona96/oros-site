@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image, { getImageProps } from "next/image";
+import { useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { urlFor } from "@/lib/sanity/image";
 import type { Category, Photo } from "@/lib/sanity/types";
@@ -14,6 +15,7 @@ import { Dialog, DialogClose, DialogContent, DialogTitle } from "./ui/dialog";
 
 const LIGHTBOX_IMAGE_WIDTH = 1800;
 const LIGHTBOX_IMAGE_QUALITY = 85;
+const PHOTO_PARAM = "photo";
 
 function lightboxImageUrl(photo: Photo) {
   return urlFor(photo.image)
@@ -117,6 +119,18 @@ function LightboxPreloadLinks({ photos }: { photos: Photo[] }) {
   );
 }
 
+/** Non-interactive stand-in for the Suspense fallback below — see PhotoGallery's comment. */
+function PhotoGalleryFallback({ photos }: { photos: Photo[] }) {
+  return (
+    <>
+      <CategoryFilter active={undefined} onSelect={() => {}} />
+      <JustifiedGrid
+        items={photos.map((photo) => ({ id: photo._id, image: photo.image, alt: photo.image.alt ?? "" }))}
+      />
+    </>
+  );
+}
+
 /**
  * Owns category filtering and the lightbox's open/index state.
  *
@@ -141,8 +155,24 @@ function LightboxPreloadLinks({ photos }: { photos: Photo[] }) {
  * dialog first opens (see the comment there for why) — combined with
  * LightboxPreloadLinks warming the network cache from page load, prev/next
  * inside an open lightbox should read as instant in practice.
+ *
+ * Lightbox open state syncs with a shallow `?photo=<id>` URL param (Phase
+ * 12e) via `window.history` directly — `useSearchParams()` only reads the
+ * *initial* value once (deep-link support); every update after that uses
+ * `pushState`/`replaceState`/`back()` plus a `popstate` listener, never a
+ * reactive re-read, so there's no risk of an update loop between the two.
+ * Opening pushes a new entry (so the browser back button closes it);
+ * prev/next replace the current entry (so back always takes you out of
+ * the lightbox in one press, not photo by photo); closing calls
+ * `history.back()` when we're the ones who pushed the open entry, or
+ * strips the param with `replaceState` when there's nothing of ours to
+ * pop (a direct deep-link visit, where "back" should leave the site, not
+ * be hijacked by the gallery). `history.pushState`/`replaceState` are the
+ * Next-documented mechanism for shallow client-side URL updates — see
+ * "Shallow routing on the client" in the App Router SPA guide.
  */
-export function PhotoGallery({ photos }: { photos: Photo[] }) {
+function PhotoGalleryInner({ photos }: { photos: Photo[] }) {
+  const searchParams = useSearchParams();
   const [category, setCategory] = useState<Category | undefined>();
   const filtered = useMemo(
     () =>
@@ -150,38 +180,90 @@ export function PhotoGallery({ photos }: { photos: Photo[] }) {
     [photos, category],
   );
 
-  const [index, setIndex] = useState<number | null>(null);
+  const [index, setIndex] = useState<number | null>(() => {
+    const photoId = searchParams.get(PHOTO_PARAM);
+    if (!photoId) return null;
+    const i = photos.findIndex((photo) => photo._id === photoId);
+    return i >= 0 ? i : null;
+  });
   const active = index !== null ? filtered[index] : null;
+
+  const urlForPhoto = useCallback((photoId: string) => {
+    const url = new URL(window.location.href);
+    url.searchParams.set(PHOTO_PARAM, photoId);
+    return url;
+  }, []);
+
+  const openPhoto = useCallback(
+    (i: number) => {
+      const photoId = filtered[i]?._id;
+      setIndex(i);
+      if (photoId) window.history.pushState({ photoLightbox: true }, "", urlForPhoto(photoId));
+    },
+    [filtered, urlForPhoto],
+  );
+
+  const navigateToPhoto = useCallback(
+    (i: number) => {
+      const photoId = filtered[i]?._id;
+      setIndex(i);
+      if (photoId) window.history.replaceState({ photoLightbox: true }, "", urlForPhoto(photoId));
+    },
+    [filtered, urlForPhoto],
+  );
+
+  const closePhoto = useCallback(() => {
+    setIndex(null);
+    if ((window.history.state as { photoLightbox?: boolean } | null)?.photoLightbox) {
+      window.history.back();
+    } else {
+      const url = new URL(window.location.href);
+      url.searchParams.delete(PHOTO_PARAM);
+      window.history.replaceState(null, "", url);
+    }
+  }, []);
+
+  // The browser back/forward buttons change the URL without going through
+  // any of the callbacks above — pushState/replaceState calls don't fire
+  // popstate, only real history navigation does, so this listener can't
+  // loop with them.
+  useEffect(() => {
+    const onPopState = () => {
+      const photoId = new URLSearchParams(window.location.search).get(PHOTO_PARAM);
+      if (!photoId) {
+        setIndex(null);
+        return;
+      }
+      const i = filtered.findIndex((photo) => photo._id === photoId);
+      setIndex(i >= 0 ? i : null);
+    };
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, [filtered]);
 
   const handleCategoryChange = (next?: Category) => {
     setCategory(next);
-    setIndex(null);
+    closePhoto();
   };
 
-  const goPrev = useCallback(
-    () => setIndex((i) => (i !== null && i > 0 ? i - 1 : i)),
-    [],
-  );
-  const goNext = useCallback(
-    () => setIndex((i) => (i !== null && i < filtered.length - 1 ? i + 1 : i)),
-    [filtered.length],
-  );
+  const goPrev = useCallback(() => {
+    if (index !== null && index > 0) navigateToPhoto(index - 1);
+  }, [index, navigateToPhoto]);
+  const goNext = useCallback(() => {
+    if (index !== null && index < filtered.length - 1) navigateToPhoto(index + 1);
+  }, [index, filtered.length, navigateToPhoto]);
 
   const touchStartX = useRef<number | null>(null);
 
   return (
     <>
-      <LightboxPreloadLinks photos={photos} />
       <CategoryFilter active={category} onSelect={handleCategoryChange} />
       <JustifiedGrid
         items={filtered.map((photo) => ({ id: photo._id, image: photo.image, alt: photo.image.alt ?? "" }))}
-        onItemClick={setIndex}
+        onItemClick={openPhoto}
       />
 
-      <Dialog
-        open={index !== null}
-        onOpenChange={(open) => !open && setIndex(null)}
-      >
+      <Dialog open={index !== null} onOpenChange={(open) => !open && closePhoto()}>
         <DialogContent
           showCloseButton={false}
           onKeyDown={(event) => {
@@ -261,6 +343,31 @@ export function PhotoGallery({ photos }: { photos: Photo[] }) {
           ) : null}
         </DialogContent>
       </Dialog>
+    </>
+  );
+}
+
+/**
+ * `PhotoGalleryInner` calls `useSearchParams()` for the initial deep-link
+ * lookup, which Next requires be wrapped in Suspense on a statically
+ * rendered route (see the App Router `useSearchParams` reference) — without
+ * it, `next build` fails outright rather than just warning. The fallback
+ * mirrors the common case (no `?photo=` in the URL) almost exactly —
+ * category filter and grid, nothing clickable yet — so hydration replacing
+ * it is imperceptible for every visit except an actual deep link, where
+ * seeing the grid for a moment before the linked photo opens is the
+ * correct, expected progressive-enhancement behavior, not a bug.
+ * `LightboxPreloadLinks` needs no search params, so it renders outside the
+ * boundary and starts warming the cache immediately regardless of hydration
+ * timing.
+ */
+export function PhotoGallery({ photos }: { photos: Photo[] }) {
+  return (
+    <>
+      <LightboxPreloadLinks photos={photos} />
+      <Suspense fallback={<PhotoGalleryFallback photos={photos} />}>
+        <PhotoGalleryInner photos={photos} />
+      </Suspense>
     </>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { contactSchema, type ContactFormValues } from "@/lib/contact-schema";
@@ -22,7 +23,37 @@ const ERROR_CLASSES = "text-sm text-destructive";
  */
 const INQUIRY_TYPE_ITEMS = Object.fromEntries(CATEGORIES.map((category) => [category.value, category.label]));
 
+/**
+ * Separately from the label-map bug above: Base UI's Select also measures
+ * the trigger's width once and doesn't re-measure it if the window resizes
+ * while the popup is closed — confirmed by hand (open at a wide viewport,
+ * shrink the window without reloading, reopen: the popup still renders at
+ * the old, wider size and pokes off the right edge of the now-narrower
+ * viewport). `key`-remounting the Select on a real width change forces a
+ * fresh measurement next time it's opened. Bucketed + debounced so an
+ * active window drag doesn't remount on every pixel.
+ */
+function useLayoutWidthBucket() {
+  const [bucket, setBucket] = useState(() => (typeof window === "undefined" ? 0 : Math.round(window.innerWidth / 50)));
+
+  useEffect(() => {
+    let timeout: ReturnType<typeof setTimeout>;
+    const onResize = () => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => setBucket(Math.round(window.innerWidth / 50)), 150);
+    };
+    window.addEventListener("resize", onResize);
+    return () => {
+      clearTimeout(timeout);
+      window.removeEventListener("resize", onResize);
+    };
+  }, []);
+
+  return bucket;
+}
+
 export function ContactForm() {
+  const layoutWidthBucket = useLayoutWidthBucket();
   const {
     register,
     handleSubmit,
@@ -90,11 +121,16 @@ export function ContactForm() {
             // unset field. Falling back to "" keeps it controlled from the
             // start and still resolves to the placeholder (SelectValue
             // treats "" as "nothing selected", same as null/undefined).
-            <Select items={INQUIRY_TYPE_ITEMS} value={field.value ?? ""} onValueChange={field.onChange}>
+            <Select
+              key={layoutWidthBucket}
+              items={INQUIRY_TYPE_ITEMS}
+              value={field.value ?? ""}
+              onValueChange={field.onChange}
+            >
               <SelectTrigger id="inquiryType" className="w-full" aria-invalid={!!errors.inquiryType}>
                 <SelectValue placeholder="Choose one" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent alignItemWithTrigger={false}>
                 {CATEGORIES.map((category) => (
                   <SelectItem key={category.value} value={category.value}>
                     {category.label}

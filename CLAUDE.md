@@ -504,6 +504,22 @@ Phase 10b built `/contact` — the form, `/api/contact`, and the first real
   events do). Workaround, not a fix: when a test only needs *some* value
   selected — not that specific option's behavior — pick the first item.
   See `selectInquiryType` in `components/contact-form.test.tsx`.
+- **Base UI's `Select` measures the trigger's width once and doesn't
+  re-measure it if the window resizes while the popup is closed.**
+  Confirmed by hand: open the popup at a wide viewport (so the trigger is
+  wide), close it, shrink the browser window *without reloading*, reopen —
+  the popup still renders at the old, wider size and pokes off the right
+  edge of the now-narrower viewport. This is a real, resize-a-live-window
+  bug, not a test artifact (this project's `Browser` pane tool's
+  `resize_window` doesn't always fire a real `resize` DOM event either,
+  which briefly looked like the fix wasn't working — dispatching one by
+  hand confirmed it does). Fix: `key`-remount the `Select` on a real width
+  change so it re-measures fresh next time it opens — bucket and debounce
+  the resize listener so a window drag doesn't remount on every pixel. See
+  `useLayoutWidthBucket` in `components/contact-form.tsx`. Also cap the
+  trigger's own container width (`max-w-xl` on `/contact`'s form column,
+  previously an uncapped `1fr` grid track) so the *ceiling* of how wide it
+  can ever get is reasonable regardless.
 
 ## Env vars & secrets (continued)
 

@@ -11,7 +11,7 @@ export default async function ContactPage() {
   return (
     <Section className="pt-8 md:pt-12">
       <Container className="grid grid-cols-1 gap-12 md:grid-cols-[1fr_minmax(0,320px)]">
-        <div className="space-y-8">
+        <div className="max-w-xl space-y-8">
           <div>
             <Eyebrow>Contact</Eyebrow>
             <Display as="h1" className="text-4xl md:text-5xl">

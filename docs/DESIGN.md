@@ -68,6 +68,39 @@ and ambition to everyone else. One mark, two honest readings.
 1. **Sunrise on load.** The hero comes up in brightness and warmth rather than fading in
    from transparent — a projector lamp reaching temperature, amber briefly strongest at
    the edges before settling. ~2s, once per session.
+
+   **Deferred post-MVP** (Phase 6, 2026-08-01). Built and iterated on, then cut for MVP
+   scope after several rounds of tuning still felt off — not a rejection of the idea,
+   just not worth further polish time before launch. Notes for whoever picks it back up:
+
+   - Two layers, not one: the media (video/poster) layer and a separate amber glow
+     layer, same duration, animated together. **Never animate the media layer's
+     opacity** — that's exactly the "fading in from transparent" the copy above rules
+     out, and it's also moot given the hero is a full-bleed `object-cover` video with
+     nothing behind it to fade in from.
+   - "Comes up in brightness" is a literal CSS `filter` ramp on the media layer —
+     `brightness()`/`saturate()` from dim+desaturated to `none` — not an opacity fade.
+   - The glow is a `radial-gradient` (`farthest-side`, transparent center, `--light-solid`
+     at the edge) with `mix-blend-mode: screen`. This only reads as true amber if it's
+     screening against a *dim* backdrop — screened against the video at full brightness,
+     it muddies toward the video's own colors and reads as gold instead of amber. This
+     is why the media dim has to happen first/underneath, not just the glow alone.
+   - Sync the two layers' timing carefully: keyframes with an early "resolved" checkpoint
+     (e.g. media hitting 90%+ brightness a third of the way through) make that layer look
+     done while the other is still visibly animating. Let both progress continuously
+     across the full duration so they resolve together, not one visibly ahead of the
+     other.
+   - Gate with `sessionStorage` (once per session) + `matchMedia('(prefers-reduced-motion:
+     reduce)')` (skip entirely, not just visually suppressed). Toggle the animation
+     classes imperatively via refs in `useLayoutEffect`, not React state — this is a
+     one-time sync with browser-only APIs, and `useLayoutEffect` (not `useEffect`) closes
+     most of the flash-of-full-brightness gap between hydration and first paint.
+   - What's *not* fixable without real cost: the flash between the server-rendered HTML
+     painting and hydration completing. The server can't know session/reduced-motion
+     state without a cookie + middleware read on every request, which would make this
+     route dynamic and fight the static-caching/`revalidateTag` model in SPEC.md §7. Worth
+     revisiting only if that tradeoff becomes acceptable later.
+
 2. **Ridgeline rules.** Section dividers are hairlines in `gold-6` carrying a faint
    gold→amber gradient at a single point — light catching one spot on a ridge.
 3. **The ascent.** Surfaces warm from sand toward gold as you scroll, peaking at the

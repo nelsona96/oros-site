@@ -38,17 +38,21 @@ export default async function FilmPage({
             `inline-block`, not the default inline: a plain inline element's vertical margins
             (including the `space-y-6` above, pushing the next sibling down) have no layout
             effect per the CSS box model, so without it there's no visible gap above the video
-            box despite the parent's spacing utility. */}
+            box despite the parent's spacing utility. `align-top` alongside it: an inline-block
+            otherwise sits on its line box's baseline, which (with no other inline content in
+            this block-level parent) reads as a several-pixel drop versus a plain block element
+            like Eyebrow's <p> — align-top removes that phantom offset so this sits flush with
+            every other page's first line of content. */}
         <Link
           href="/portfolio/videos"
-          className="rounded-control text-text-accent hover:text-text-primary inline-block font-mono text-xs tracking-widest uppercase transition-colors"
+          className="rounded-control text-text-accent hover:text-text-primary inline-block align-top font-mono text-xs tracking-widest uppercase transition-colors"
         >
           Portfolio / Videos
         </Link>
         <div className="rounded-control bg-surface relative aspect-video overflow-hidden">
           <FilmPlayer film={film} />
         </div>
-        <div className="space-y-2">
+        <div className="space-y-1">
           <Display as="h1" size="md">
             {film.title}
           </Display>

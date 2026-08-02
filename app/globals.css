@@ -125,7 +125,13 @@
   --text-body--line-height: 1.65;
   --text-body-sm: 0.875rem;
   --text-body-sm--line-height: 1.55;
+  /* Matches Tailwind's own --text-xs--line-height exactly (calc(1 / 0.75))
+     — every mono-caps label site-wide is either this token via Eyebrow or a
+     raw text-xs utility (nav, breadcrumbs, footer links); without a paired
+     value here Eyebrow instead inherited the ambient 1.5 body line-height,
+     so the two rendered at different heights despite the same 12px size. */
   --text-label: 0.75rem;
+  --text-label--line-height: calc(1 / 0.75);
 
   --tracking-display: -0.015em;
 

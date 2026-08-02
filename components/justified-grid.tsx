@@ -8,6 +8,21 @@ import type { SanityImage } from "@/lib/sanity/types";
 const SIZES = "(min-width: 1024px) 340px, (min-width: 640px) 260px, 50vw";
 const FILLER_COUNT = 5;
 
+/**
+ * A real CSS Flexbox rule, not a workaround for a bug: per spec (§9.7 step
+ * 6b), when the *sum* of flex-grow factors on a line is less than 1, the
+ * browser only distributes that sum's fraction of the leftover space and
+ * leaves the rest empty — it does not clamp up to "give everything away."
+ * A single portrait photo (aspectRatio < 1, e.g. 0.75) used directly as
+ * flex-grow is exactly this case whenever it's alone on a line, which on
+ * mobile (one item per row) is the common case, not an edge case — the row
+ * visibly stopped short of the container's full width. Multiplying every
+ * item's flex-grow by the same large constant leaves every line's relative
+ * proportions identical (flex-grow is only ever compared against siblings
+ * on the same line) while guaranteeing the sum is always comfortably >1.
+ */
+const FLEX_GROW_SCALE = 1000;
+
 export type JustifiedGridItem = {
   id: string;
   image: SanityImage;
@@ -38,11 +53,17 @@ export type JustifiedGridItem = {
  *
  * Known limitation, accepted per SPEC.md §1: an incomplete last row would
  * otherwise stretch to fill full width like any other row, visibly
- * distorting a lone trailing image. The trailing zero-height filler
- * elements are the standard CSS-only fix — they absorb that leftover
- * growth instead, on whichever row has room for them (harmless no-ops on
- * every row that's already full). If this ever proves insufficient in
- * practice, `react-photo-album` is the named fallback, not a rewrite.
+ * distorting a lone trailing image — but only where the layout normally
+ * puts more than one item per row (sm and up); on mobile, one-per-row *is*
+ * the intended layout, not an incomplete one, so a suppressed last item
+ * would be the one photo that doesn't reach the same width as every other
+ * row. The trailing zero-height filler elements are the standard CSS-only
+ * fix for the former — `grow-0` by default so they never compete for
+ * space, `sm:grow-[...]` past that breakpoint so they dominate and absorb
+ * the leftover growth instead, on whichever row has room for them
+ * (harmless no-ops on every row that's already full). If this ever proves
+ * insufficient in practice, `react-photo-album` is the named fallback, not
+ * a rewrite.
  *
  * Shared between the real portfolio grid (`PhotoGallery`, every item
  * clickable to open the lightbox) and `SelectedWork`'s featured strip
@@ -77,7 +98,7 @@ export function JustifiedGrid({
       {items.map((item, index) => {
         const { aspectRatio } = item.image.asset.metadata.dimensions;
         const style = {
-          flexGrow: aspectRatio,
+          flexGrow: aspectRatio * FLEX_GROW_SCALE,
           flexBasis: `calc(var(--row-h) * ${aspectRatio})`,
           aspectRatio,
         };
@@ -128,7 +149,19 @@ export function JustifiedGrid({
         );
       })}
       {Array.from({ length: FILLER_COUNT }, (_, i) => (
-        <div key={`filler-${i}`} aria-hidden className="h-0 min-w-0" style={{ flexGrow: 999 }} />
+        // `hidden` below sm, not just zero flex-grow: mobile is one photo
+        // per row by design, so the last row's lone photo should fill it
+        // exactly like every other row does. A flex item with flex-grow: 0
+        // still occupies a slot on its line and still gets a `gap` before
+        // it — with 3 zero-width fillers landing on the same line, that's
+        // 3 gaps eaten for nothing, visibly short-filling the one photo
+        // whether the filler itself grows or not. `hidden` removes it from
+        // the flex layout entirely, so it costs nothing until sm:block
+        // brings it back — where it must stay far larger than any real
+        // item's own scaled flex-grow (aspectRatio * FLEX_GROW_SCALE, a few
+        // thousand at most) so a filler landing on an incomplete last row
+        // still absorbs its leftover growth there.
+        <div key={`filler-${i}`} aria-hidden className="hidden h-0 min-w-0 sm:block sm:grow-[999000]" />
       ))}
     </div>
   );

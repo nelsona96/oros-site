@@ -38,18 +38,31 @@ describe("JustifiedGrid", () => {
     expect(screen.getByAltText("A portrait photo")).toBeInTheDocument();
   });
 
-  it("sets flex-basis, flex-grow, and aspect-ratio proportional to each item's aspect ratio", () => {
+  it("sets flex-basis and aspect-ratio proportional to each item's aspect ratio, and flex-grow proportionally scaled", () => {
     const { container } = render(<JustifiedGrid items={items} onItemClick={noop} />);
     const grid = container.firstElementChild!;
     const buttons = grid.querySelectorAll(":scope > button[style]");
     const [landscape, portrait] = Array.from(buttons) as HTMLElement[];
 
-    expect(landscape.style.flexGrow).toBe("1.5");
+    // flex-grow is aspectRatio * a large constant (see FLEX_GROW_SCALE) rather
+    // than the raw ratio — CSS Flexbox only distributes the sum of a line's
+    // flex-grow factors as a *fraction* of the leftover space when that sum
+    // is below 1, so a lone portrait photo (ratio < 1, the common case on a
+    // one-per-row mobile layout) would otherwise visibly stop short of
+    // filling its row. The 2:1 ratio between these two items must still hold.
+    expect(Number(landscape.style.flexGrow) / Number(portrait.style.flexGrow)).toBeCloseTo(2, 5);
+    expect(Number(landscape.style.flexGrow)).toBeGreaterThan(1);
     expect(landscape.style.flexBasis).toBe("calc(var(--row-h) * 1.5)");
     expect(landscape.style.aspectRatio).toBe("1.5 / 1");
-    expect(portrait.style.flexGrow).toBe("0.75");
     expect(portrait.style.flexBasis).toBe("calc(var(--row-h) * 0.75)");
     expect(portrait.style.aspectRatio).toBe("0.75 / 1");
+  });
+
+  it("scales a lone item's flex-grow well past 1 so it fully fills its row even with a ratio under 1", () => {
+    const portraitOnly: JustifiedGridItem[] = [{ id: "p1", image: makeImage(0.75), alt: "A portrait photo" }];
+    render(<JustifiedGrid items={portraitOnly} onItemClick={noop} />);
+    const button = screen.getByAltText("A portrait photo").closest("button")!;
+    expect(Number(button.style.flexGrow)).toBeGreaterThan(1);
   });
 
   it("renders images with object-contain so nothing is ever cropped", () => {

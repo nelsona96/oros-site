@@ -151,8 +151,11 @@ Four documents, one per vertical. A document type rather than an array in settin
 the deferred `/services/[slug]` pages need no migration.
 
 ### `siteSettings` (singleton)
-Studio name · tagline · `heroVideo` (file) · `heroPoster` (image) · about heading and
-body · portrait · contact email, phone, Instagram · default OG image and meta description.
+Studio name · tagline · `heroVideo` (file) · `heroPoster` (image) · about heading, short
+teaser body, and long-form body (`aboutLongForm`, added Phase 10a — the full `/about` page
+copy, including the faith/mission paragraph; the teaser `aboutBody` is what the landing
+page's About summary shows) · portrait · contact email, phone, Instagram · default OG
+image and meta description.
 
 Pinned as a singleton via the Structure Builder so there's exactly one, and your friend
 can't accidentally create a second.
@@ -188,9 +191,12 @@ to do next, never apologize.
 
 ## 5. Contact form
 
-Fields: name, email, inquiry type (the four verticals), event date (optional), message.
-The inquiry-type field is what lets your friend triage a wedding from a brand shoot at a
-glance.
+Fields: name, email, phone (optional), inquiry type (the four verticals), location/venue
+(optional), event date (optional, free text — not a date picker, since a couple/client
+often hasn't locked a date yet), budget range (optional), message. Phone, location, and
+budget were added in Phase 10b after checking what's conventional for a photography/
+videography inquiry form — they let your friend triage a lead before the first call. The
+inquiry-type field is what lets him triage a wedding from a brand shoot at a glance.
 
 - Validation with Zod, shared between client and Route Handler
 - **Honeypot** hidden field — a public form on a photography site attracts bots immediately

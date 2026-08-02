@@ -4,6 +4,7 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
+import { Toaster } from "@/components/ui/sonner";
 
 const instrumentSerif = Instrument_Serif({
   variable: "--font-instrument-serif",
@@ -54,6 +55,7 @@ export default function RootLayout({
          */}
         <main className="flex-1 pt-20">{children}</main>
         <Footer />
+        <Toaster />
       </body>
     </html>
   );

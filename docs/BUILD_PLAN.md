@@ -175,23 +175,135 @@ reduced motion on.
 
 ---
 
-### Phase 12 — SEO, analytics, and system pages
+### Phase 12 — Polish: foundations **(split)**
+`feat(polish)` · ~1850 lines across six PRs
+
+Inserted ahead of first deployment. UI/UX polish plus a handful of concrete fixes,
+split so the structural pieces (type scale, chosen typeface, corrected grid) land
+*before* Phase 13 is built on top of them — `next/og` templates and the new system
+pages would otherwise embed sizing and a typeface that are still in flux.
+
+**12a** (`feat(cms)`, ~250 lines): Sanity schema additions — `testimonial.image`
+(hotspot, required `alt`) and a `film.captions` file field (`.vtt`) closing the
+DESIGN.md §11 / SPEC.md §9 caption requirement that shipped unimplemented. Query and
+type updates, `FilmPlayer` renders a `<track>` when present, `scripts/seed.ts`
+updated, Studio deployed per the Phase 10 procedure below. Goes first because both
+fields need a Studio deploy *and* your friend to populate them before 12f can use
+them — same lead-time argument as Phase 3b.
+
+**12b** (`feat(ui)`, ~200 lines): heading typeface, explored and decided rather than
+kept by default. `/styleguide` gains a comparison view across 3–4 candidates
+alongside Instrument Sans and IBM Plex Mono; stop for review; land the chosen face
+via `next/font`; delete the comparison scaffolding; rewrite DESIGN.md §5, including
+its "deliberately avoided" rationale and the same-family pairing argument that
+depends on which face wins.
+
+**12c** (`feat(ui)`, ~400 lines): a real fluid type scale (`clamp()`-based display
+xl/lg/md/sm, body, body-sm, label) plus `--leading-*`/`--tracking-*`/motion tokens in
+`@theme`, tuned to whichever face 12b picked. `Display` gains a `size` variant (cva,
+matching `ui/button.tsx`'s pattern), `Eyebrow` gains a `tone`, and `Body`/`Lead` are
+added to replace copy-pasted paragraph markup. `Section`/`Container`/`Display`/
+`Eyebrow` are routed through `cn()` instead of naive string concatenation — the
+actual fix for spacing overrides currently winning by source-order luck rather than
+merge. All ad-hoc `text-Nxl md:text-Nxl` call sites migrate to the scale. A single
+global `:focus-visible` rule replaces the hand-repeated ring classes.
+
+**12d** (`feat(portfolio)`, ~350 lines): the photo grid, compared before it's fixed.
+A dev-only route renders the same photos both as justified rows (with the
+`height: var(--row-h)` lock removed so row height scales and `object-cover` never
+crops) and as a true masonry; stop for review; implement the winner; delete the
+loser and the comparison route. `SelectedWork` adopts the same component for a
+featured subset, replacing its CSS-columns layout. **If masonry wins, DESIGN.md §7
+needs rewriting** — it currently argues specifically for justified rows.
+
+**12e** (`fix(ui)`, ~300 lines): lightbox URL state (shallow `history.pushState`, so
+back closes it and `?photo=<id>` deep-links directly — category filtering stays
+client-only, per the existing Phase 8b decision); hero video gets a real fallback
+when autoplay is blocked instead of showing an empty scrim, and drops
+`preload="auto"` (SPEC.md §9: must not block first paint) and the deprecated
+`priority` prop; header's active-tab check is corrected so Work stays highlighted
+on `/portfolio/videos`. Precedes 12f, whose landing links depend on the deep-link
+target this adds.
+
+**12f** (`feat(landing)`, ~350 lines): photography added to Services
+(`service.coverImage` already exists in the schema, unused today — no schema work)
+and Testimonials (`testimonial.image` from 12a, self-guarded for the mixed state);
+Selected Work's CTA moves to the bottom of the section and each featured photo
+becomes a real focusable control deep-linking into the portfolio lightbox; the
+footer is built out — nav, `mailto:`/`tel:` from `siteSettings`, Instagram,
+copyright — routed through `Container` instead of re-implementing its classes.
+
+**Done when:** no component passes a raw `text-*` size to `Display`; the photo grid
+shows every image at its true aspect ratio with no cropping, in one shared component
+between landing and portfolio; the lightbox is back-button- and deep-link-capable;
+the hero falls back cleanly when autoplay is blocked; and the landing page carries
+photography across Selected Work, Services, About, and Testimonials.
+
+---
+
+### Phase 13 — SEO, analytics, and system pages
 `feat(seo)` · ~300 lines
 
 Per-route metadata, OG images via `next/og`, `sitemap.xml`, `robots.txt`, LocalBusiness
 JSON-LD. Vercel Analytics. `not-found.tsx`, `error.tsx`, `loading.tsx`, and empty states
-for filtered views with no results (per SPEC.md §4).
+for filtered views with no results (per SPEC.md §4). Builds on Phase 12's settled type
+scale and typeface rather than ad-hoc sizes; `siteSettings.ogImage` and
+`metaDescription` already exist in the schema. Also adds `metadataBase` and a title
+`template` (every page's tab currently reads the literal string "Oros Productions"),
+plus `display: "swap"` on the three `next/font` loaders.
 
 **Done when:** shared links preview correctly, the sitemap lists every route, and each
-system page renders with real copy.
+system page renders with real copy using the Phase 12 type scale.
 
 ---
 
-### Phase 13 — E2E and deploy
+### Phase 14 — Polish: copy, accessibility, and edge cases **(split)**
+`feat(polish)` · ~800 lines across three PRs
+
+The second polish slice, placed after Phase 13 so its new system pages (404, error,
+empty states) get the same treatment rather than a separate later pass, and before
+Phase 15 so Playwright specs are written against a settled DOM.
+
+**14a** (`feat(content)`, ~250 lines): a full copy pass. Several user-facing strings
+are currently DESIGN.md's internal design vocabulary shipped verbatim (the landing
+h2 is literally "A cross-vertical cut of recent work.") — rewritten in DESIGN.md
+§1's voice across section headings, the Photos page h1, empty states, 404/error copy,
+form labels, and the footer, following SPEC.md §4's "state what's there and what to
+do next, never apologize." Delivered for review/edit, not auto-applied.
+
+**14b** (`fix(a11y)`, ~300 lines): closes gaps against DESIGN.md §11's stated floor.
+`CategoryFilter` and the header nav currently convey active state by color alone
+(no `aria-pressed`/`aria-current`) — a WCAG 1.4.1 failure; skip-to-content link and
+an `id` on `<main>`; route-change focus management; a real accessible name on the
+lightbox dialog instead of a literal "Photo" fallback; Sanity fetch failures degrade
+section-by-section instead of throwing the whole page, with `error.tsx` as backstop;
+zero-result filter states render something instead of blank space under the filter
+bar; `theme-color` meta so iOS Safari's chrome matches the committed dark site;
+contact form gains a pending/disabled state and double-submit guard; deletes
+`app/sanity-check/`, which its own comment marks as short-lived and which is
+currently reachable in production unguarded.
+
+**14c** (`feat(contact)`, ~250 lines): the inquiry email rebuilt as HTML with a text
+fallback — `tel:`/`mailto:` links, triage fields (type, date, location, budget)
+leading, message following — plus an auto-reply confirming receipt to the submitter.
+SPEC.md §5 updated to describe it. Needs a verified Resend sending domain, which is
+DNS work with propagation lag; do it as a prerequisite chore at the start of this
+sub-phase rather than mid-implementation.
+
+**Done when:** keyboard-only navigation reaches every control with visible focus and
+no state conveyed by color alone; a simulated Sanity outage degrades instead of
+500-ing; `/sanity-check` returns 404; no user-facing string quotes DESIGN.md's design
+vocabulary; and a test inquiry arrives as formatted HTML with a tappable phone number
+and triggers a confirmation reply.
+
+---
+
+### Phase 15 — E2E and deploy
 `test(e2e)` · ~250 lines
 
 Playwright config and the four specs from SPEC.md §8. Vercel project, env vars, custom
-domain, production deploy.
+domain, production deploy. Specs are written against the DOM Phase 12/14 finalized —
+no polish sub-phase lands after this one, by design.
 
 **Done when:** all four specs pass against a preview deploy and the site is live on its
 domain.
@@ -210,3 +322,13 @@ the friend's hero loop, portrait, testimonials, and first batch of photos and fi
 now arrive in parallel with the build rather than gating it. Still worth requesting that
 content at Phase 1, since the seeded placeholders get swapped for real content before
 launch either way.
+
+Phase 12 is split in two places on purpose, not just for PR size. **12b** (typeface)
+and **12d** (grid layout) are decision gates — implementation stops mid-sub-phase for
+a review before the rest of that sub-phase proceeds, the same "wait for approval"
+step CLAUDE.md's workflow already requires, just triggered inside the phase rather
+than only at its end. **12a** goes first purely for lead time: its schema fields need
+a Studio deploy and the friend's content before **12f** can use them, mirroring why
+Phase 3b was sequenced early. Phase 14 depends on Phase 13 existing (14b hardens
+system pages Phase 13 creates) and must land before Phase 15 so E2E specs aren't
+written against a DOM that's about to change again.

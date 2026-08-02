@@ -269,3 +269,76 @@ lightbox).
   the `react-hooks/set-state-in-effect` lint rule. Seen more than once in
   this build: extract the piece that needs to reset into its own component
   and give it `key={theChangingValue}` instead.
+
+---
+
+# Established patterns (Phase 9)
+
+Phase 9 built the Videos tab: the feed (`/portfolio/videos`), the intercepting-
+route player overlay, and the standalone `/portfolio/videos/[slug]` page.
+
+## Page composition
+
+- `app/layout.tsx`'s `<body>` is `flex min-h-dvh flex-col`, with `<main>` as
+  `flex-1` — the sticky-footer pattern, so a page with too little content to
+  fill the viewport (the standalone video page was the one that surfaced
+  this) still pins `<Footer>` to the bottom instead of stranding it partway
+  up. `<Header>` is `fixed`, so it's out of flow and unaffected either way.
+  Applies globally, not just to that one page.
+
+## Routing gotchas
+
+- **A route segment can't mix a `loading.tsx`-driven Suspense boundary with
+  a sibling parallel-route slot that resolves differently.** Giving
+  `/portfolio/videos/[slug]/page.tsx` its own `loading.tsx`, on a layout that
+  also owns the `@modal` slot for the intercepting route overlay, made the
+  page hang on the loading spinner forever client-side and never swap to the
+  real content — reproduced against both `next dev` and a clean `next build
+  && next start`, so not a dev-server artifact. Next's own parallel-routes
+  docs warn about exactly this class of mismatch ("if one slot is dynamic,
+  all slots at that level must be dynamic"), though the failure mode here was
+  a silent hang, not a build error. Fix was to drop that `loading.tsx` (the
+  route is fast enough in practice without one) rather than keep fighting
+  the combination — see the comment on `FilmPage` in that file. Worth
+  checking for again before adding a `loading.tsx` to any route segment that
+  shares a layout with a parallel-route slot.
+
+## shadcn / Base UI gotchas (continued)
+
+- **`DialogContent`'s hardcoded entrance animation
+  (`data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95`, etc.)
+  can't be cleanly cancelled via `className`** — tailwind-merge doesn't
+  recognize those tw-animate-css utility names as conflicting with anything,
+  so there's no override that reliably removes them (the same gap that made
+  the `rounded-xl` default need a same-value `rounded-lg` pairing to actually
+  cancel, not just a `rounded-control` override — see `photo-gallery.tsx`
+  git history). Harmless for the photo lightbox (one `Dialog` instance for
+  its whole open lifetime). Actively wrong for anything whose content can
+  swap while mounted across separate React subtrees — e.g. a `loading.tsx`
+  fallback replaced by the real page: the entrance animation replayed on
+  that swap, reading as a flicker/pop rather than a quiet update. Fix:
+  compose `DialogPrimitive.Backdrop`/`.Popup` (from `@base-ui/react/dialog`)
+  directly instead of through `DialogContent` — not a vendored-file edit,
+  just building from the same primitives `DialogContent` itself uses, one
+  level lower, when its animation/sizing defaults don't fit. See
+  `components/video-modal-shell.tsx`.
+
+## Third-party embed gotchas
+
+- **`@mux/mux-player-react`'s keyboard-focus ring is a separate override
+  from its `primaryColor`/`secondaryColor`/`accentColor` props.** Those three
+  theme the player's visible chrome; the focus ring (shown when tabbing to
+  the play button, seek bar, etc.) is hardcoded by media-chrome to a blue
+  `box-shadow` via its own CSS custom property, `--media-focus-box-shadow`.
+  Left unset, it's a plain browser-blue ring that has no relationship to the
+  rest of the color system. Pass it through the player's `style` prop (typed
+  as `MuxPlayerCSSProperties`, not plain `CSSProperties`, since custom
+  properties need that library's own index-signature type) — see
+  `components/film-player.tsx`.
+- Testing a component that renders `<MuxPlayer>`: the real `<mux-player>`
+  custom element runs browser-only shadow-DOM rendering logic that throws in
+  jsdom. Mock `@mux/mux-player-react`'s default export with a plain
+  `createElement("mux-player", props)` stub — same "mock the external
+  boundary" move as this repo's `next/navigation` mocks, just for a
+  third-party web component instead of a framework API. See
+  `components/film-player.test.tsx`.

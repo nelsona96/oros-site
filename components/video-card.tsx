@@ -1,7 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
+import { categoryLabel, formatDuration } from "@/lib/film";
 import { urlFor } from "@/lib/sanity/image";
-import { CATEGORIES, type Film } from "@/lib/sanity/types";
+import type { Film } from "@/lib/sanity/types";
 import { Display } from "./typography";
 
 const THUMBNAIL_WIDTH = 800;
@@ -17,18 +18,6 @@ const SIZES = "(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw";
  */
 function muxPosterUrl(playbackId: string) {
   return `https://image.mux.com/${playbackId}/thumbnail.jpg?width=${THUMBNAIL_WIDTH}&height=${THUMBNAIL_HEIGHT}&fit_mode=smartcrop`;
-}
-
-/** "125" (seconds, from Mux) -> "2:05". Omitted by the caller when duration is missing. */
-function formatDuration(seconds: number) {
-  const total = Math.floor(seconds);
-  const minutes = Math.floor(total / 60);
-  const secs = total % 60;
-  return `${minutes}:${secs.toString().padStart(2, "0")}`;
-}
-
-function categoryLabel(category: Film["category"]) {
-  return CATEGORIES.find((c) => c.value === category)?.label ?? category;
 }
 
 /**

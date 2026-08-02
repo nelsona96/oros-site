@@ -8,33 +8,32 @@ import type { Category, Photo } from "@/lib/sanity/types";
 import { CategoryFilter } from "./category-filter";
 import { Icon } from "./icon";
 import { JustifiedGrid } from "./justified-grid";
+import { Spinner } from "./spinner";
 import { Dialog, DialogClose, DialogContent, DialogTitle } from "./ui/dialog";
 
 const LIGHTBOX_IMAGE_WIDTH = 1800;
 const LIGHTBOX_IMAGE_QUALITY = 85;
 
 function lightboxImageUrl(photo: Photo) {
-  return urlFor(photo.image).width(LIGHTBOX_IMAGE_WIDTH).quality(LIGHTBOX_IMAGE_QUALITY).url();
+  return urlFor(photo.image)
+    .width(LIGHTBOX_IMAGE_WIDTH)
+    .quality(LIGHTBOX_IMAGE_QUALITY)
+    .url();
 }
 
 /** DESIGN.md §5: "NIKON Z8 · 85MM · ƒ1.4 · 1/200" — mono, only the fields actually present. */
 function formatCapture(capture: Photo["capture"]) {
   if (!capture) return null;
-  const parts = [capture.camera, capture.lens, capture.aperture, capture.shutter].filter(Boolean);
+  const parts = [
+    capture.camera,
+    capture.lens,
+    capture.aperture,
+    capture.shutter,
+  ].filter(Boolean);
   return parts.length > 0 ? parts.join(" · ") : null;
 }
 
 const SWIPE_THRESHOLD_PX = 50;
-
-/** A ring-only spinner, not another lucide icon — DESIGN.md §6 enumerates the whole site's icon set and this isn't in it. */
-function Spinner() {
-  return (
-    <div role="status" className="absolute inset-0 flex items-center justify-center">
-      <div className="h-8 w-8 animate-spin rounded-full border-2 border-text-secondary/30 border-t-text-accent" />
-      <span className="sr-only">Loading photo…</span>
-    </div>
-  );
-}
 
 /**
  * One persistent layer per photo, stacked and cross-faded by opacity —
@@ -49,7 +48,13 @@ function Spinner() {
  * spinner briefly if it hasn't finished loading; every view after that is
  * instant.
  */
-function LightboxPhotoLayer({ photo, active }: { photo: Photo; active: boolean }) {
+function LightboxPhotoLayer({
+  photo,
+  active,
+}: {
+  photo: Photo;
+  active: boolean;
+}) {
   const [loaded, setLoaded] = useState(false);
 
   return (
@@ -69,7 +74,7 @@ function LightboxPhotoLayer({ photo, active }: { photo: Photo; active: boolean }
       {/* After the Image in DOM order, not before — an inactive/still-loading
           layer's Spinner must paint on top of its own (invisible but still
           box-occupying) image, not underneath it. */}
-      {active && !loaded ? <Spinner /> : null}
+      {active && !loaded ? <Spinner label="Loading photo…" /> : null}
     </>
   );
 }
@@ -139,7 +144,8 @@ function LightboxPreloadLinks({ photos }: { photos: Photo[] }) {
 export function PhotoGallery({ photos }: { photos: Photo[] }) {
   const [category, setCategory] = useState<Category | undefined>();
   const filtered = useMemo(
-    () => (category ? photos.filter((photo) => photo.category === category) : photos),
+    () =>
+      category ? photos.filter((photo) => photo.category === category) : photos,
     [photos, category],
   );
 
@@ -151,7 +157,10 @@ export function PhotoGallery({ photos }: { photos: Photo[] }) {
     setIndex(null);
   };
 
-  const goPrev = useCallback(() => setIndex((i) => (i !== null && i > 0 ? i - 1 : i)), []);
+  const goPrev = useCallback(
+    () => setIndex((i) => (i !== null && i > 0 ? i - 1 : i)),
+    [],
+  );
   const goNext = useCallback(
     () => setIndex((i) => (i !== null && i < filtered.length - 1 ? i + 1 : i)),
     [filtered.length],
@@ -165,7 +174,10 @@ export function PhotoGallery({ photos }: { photos: Photo[] }) {
       <CategoryFilter active={category} onSelect={handleCategoryChange} />
       <JustifiedGrid photos={filtered} onPhotoClick={setIndex} />
 
-      <Dialog open={index !== null} onOpenChange={(open) => !open && setIndex(null)}>
+      <Dialog
+        open={index !== null}
+        onOpenChange={(open) => !open && setIndex(null)}
+      >
         <DialogContent
           showCloseButton={false}
           onKeyDown={(event) => {
@@ -182,18 +194,20 @@ export function PhotoGallery({ photos }: { photos: Photo[] }) {
             else if (delta < -SWIPE_THRESHOLD_PX) goNext();
             touchStartX.current = null;
           }}
-          className="top-0 right-0 bottom-0 left-0 flex w-auto max-w-none translate-x-0 translate-y-0 flex-col items-center justify-center gap-4 rounded-none border-0 bg-app-bg p-4 ring-0 sm:max-w-none sm:p-6"
+          className="bg-app-bg top-0 right-0 bottom-0 left-0 flex w-auto max-w-none translate-x-0 translate-y-0 flex-col items-center justify-center gap-4 rounded-none border-0 p-4 ring-0 sm:max-w-none sm:p-6"
         >
           {active ? (
             <>
-              <DialogTitle className="sr-only">{active.caption ?? "Photo"}</DialogTitle>
+              <DialogTitle className="sr-only">
+                {active.caption ?? "Photo"}
+              </DialogTitle>
 
               <DialogClose
                 render={
                   <button
                     type="button"
                     aria-label="Close"
-                    className="ring-focus-ring rounded-control touch-manipulation absolute top-2 right-2 z-10 cursor-pointer p-3 text-text-primary outline-none transition-opacity hover:text-text-accent focus-visible:ring-2"
+                    className="ring-focus-ring rounded-control text-text-primary hover:text-text-accent absolute top-2 right-2 z-10 cursor-pointer touch-manipulation p-3 transition-opacity outline-none focus-visible:ring-2"
                   />
                 }
               >
@@ -202,15 +216,23 @@ export function PhotoGallery({ photos }: { photos: Photo[] }) {
 
               <div className="relative w-full flex-1 overflow-hidden">
                 {filtered.map((photo, i) => (
-                  <LightboxPhotoLayer key={photo._id} photo={photo} active={i === index} />
+                  <LightboxPhotoLayer
+                    key={photo._id}
+                    photo={photo}
+                    active={i === index}
+                  />
                 ))}
               </div>
 
               {active.caption || formatCapture(active.capture) ? (
                 <div className="flex w-full max-w-3xl flex-col items-center gap-1 text-center">
-                  {active.caption ? <p className="font-body text-text-primary">{active.caption}</p> : null}
+                  {active.caption ? (
+                    <p className="font-body text-text-primary">
+                      {active.caption}
+                    </p>
+                  ) : null}
                   {formatCapture(active.capture) ? (
-                    <p className="font-mono text-xs tracking-widest text-text-accent uppercase">
+                    <p className="text-text-accent font-mono text-xs tracking-widest uppercase">
                       {formatCapture(active.capture)}
                     </p>
                   ) : null}
@@ -223,7 +245,7 @@ export function PhotoGallery({ photos }: { photos: Photo[] }) {
                   aria-label="Previous photo"
                   disabled={index === 0}
                   onClick={goPrev}
-                  className="ring-focus-ring rounded-control touch-manipulation cursor-pointer p-3 text-text-primary outline-none transition-opacity hover:text-text-accent focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-0"
+                  className="ring-focus-ring rounded-control text-text-primary hover:text-text-accent cursor-pointer touch-manipulation p-3 transition-opacity outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-0"
                 >
                   <Icon icon={ChevronLeft} size={28} />
                 </button>
@@ -232,7 +254,7 @@ export function PhotoGallery({ photos }: { photos: Photo[] }) {
                   aria-label="Next photo"
                   disabled={index === filtered.length - 1}
                   onClick={goNext}
-                  className="ring-focus-ring rounded-control touch-manipulation cursor-pointer p-3 text-text-primary outline-none transition-opacity hover:text-text-accent focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-0"
+                  className="ring-focus-ring rounded-control text-text-primary hover:text-text-accent cursor-pointer touch-manipulation p-3 transition-opacity outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-0"
                 >
                   <Icon icon={ChevronRight} size={28} />
                 </button>

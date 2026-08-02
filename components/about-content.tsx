@@ -20,7 +20,7 @@ export function AboutContent({ settings }: { settings: SiteSettings | null }) {
 
   return (
     <Section className="pt-8 md:pt-12">
-      <Container className="grid grid-cols-1 items-start gap-8 md:grid-cols-[minmax(0,360px)_1fr] md:gap-16">
+      <Container className="grid grid-cols-1 items-center gap-8 md:grid-cols-[minmax(0,320px)_1fr] md:gap-12">
         {portraitUrl && portrait ? (
           <Image
             src={portraitUrl}
@@ -33,15 +33,13 @@ export function AboutContent({ settings }: { settings: SiteSettings | null }) {
           />
         ) : null}
 
-        <div className="space-y-6">
-          <div>
-            <Eyebrow>About</Eyebrow>
-            {heading ? (
-              <Display as="h1" className="text-4xl md:text-5xl">
-                {heading}
-              </Display>
-            ) : null}
-          </div>
+        <div className="space-y-4">
+          <Eyebrow>About</Eyebrow>
+          {heading ? (
+            <Display as="h1" className="text-4xl md:text-5xl">
+              {heading}
+            </Display>
+          ) : null}
           {paragraphs.map((paragraph, index) => (
             <p key={index} className="max-w-prose font-body text-text-secondary">
               {paragraph}

@@ -144,17 +144,37 @@ push`/`gh pr create`/`gh pr merge` for the `gt` equivalent is what caused a
 stacked-PR merge to go wrong once already (step 5 below explains why).
 
 1. **Implement.** `gt create` off the *previous phase's branch*, not `main`
-   — a stack, never branching straight off trunk for a sub-phase. `gt
-   create -a -m "<msg>"` auto-generates the branch name from the commit
-   message, which won't match the `phase-<N><letter>-<slug>` convention —
-   rename it to match with **`gt branch rename <name>`, never plain `git
-   branch -m`**. A plain `git branch -m` renames the ref but doesn't update
-   Graphite's own metadata store, which still maps the *old* name to its
-   parent/stack position — the renamed branch comes back from `gt log
-   short` as `untracked` (confirmed: `gt branch info` then errors "Cannot
-   perform this operation on untracked branch"). Recoverable with `gt track
-   --parent <parent-branch>` (no commits lost — the fix is metadata-only),
-   but `gt branch rename` avoids the whole detour.
+   — a stack, never branching straight off trunk for a sub-phase. **Pass the
+   branch name as the positional argument up front —
+   `gt create phase-<N><letter>-<slug> -a -m "<msg>"`** — rather than
+   `gt create -a -m "<msg>"` alone, which auto-generates a name from the
+   commit message that won't match the `phase-<N><letter>-<slug>` convention.
+   Confirmed this session for a non-phase docs branch too (see the naming
+   note below) — naming it up front sidesteps the rename step entirely. If a
+   branch does end up with the wrong name anyway, fix it with **`gt branch
+   rename <name>`, never plain `git branch -m`**. A plain `git branch -m`
+   renames the ref but doesn't update Graphite's own metadata store, which
+   still maps the *old* name to its parent/stack position — the renamed
+   branch comes back from `gt log short` as `untracked` (confirmed: `gt
+   branch info` then errors "Cannot perform this operation on untracked
+   branch"). Recoverable with `gt track --parent <parent-branch>` (no commits
+   lost — the fix is metadata-only), but `gt branch rename` avoids the whole
+   detour.
+   **Branch naming:** `phase-<N><letter>-<slug>` is for branches implementing
+   a BUILD_PLAN.md phase. A standalone change to the planning docs themselves
+   (not implementing any phase's code) doesn't fit that pattern — use
+   `docs-<slug>` instead, matching the existing history (`docs-phase-11-gt-
+   rename-gotcha`, `docs-auto-delete-branches`, etc. — check `gh pr list
+   --state merged` the same way).
+   **Mid-phase decision gates:** a sub-phase can define its own internal
+   checkpoint, not just the end-of-implementation one in step 2 below — e.g.
+   Phase 12b (typeface) and 12d (grid layout) each build a comparison, then
+   explicitly *stop for review* before the rest of that sub-phase proceeds.
+   Treat that stop exactly like step 2's "wait for approval" — don't
+   continue past it on your own inference of which option the user would
+   pick, even under auto-mode's normal bias toward not pausing. Check the
+   phase's own BUILD_PLAN.md entry for language like "stop for review" before
+   assuming a sub-phase is a single uninterrupted implementation pass.
 2. **Wait for approval of the implementation** before doing anything below.
    Don't submit, open a PR, or merge unprompted.
 3. **Submit, once approved:** `gt submit` (or `gt submit --stack` for the

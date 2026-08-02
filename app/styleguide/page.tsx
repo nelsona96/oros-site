@@ -5,6 +5,7 @@ import { Section } from "@/components/section";
 import { Display, Eyebrow } from "@/components/typography";
 import { Ridgeline } from "@/components/ridgeline";
 import { RidgelineMark } from "@/components/ridgeline-mark";
+import { TypefaceComparison } from "./typeface-comparison";
 
 type Swatch = { label: string; cssVar: string; className: string };
 
@@ -90,6 +91,10 @@ export default function StyleguidePage() {
           <Eyebrow>Dev only — docs/DESIGN.md §3, §4 &amp; §5</Eyebrow>
           <Display className="text-5xl">Styleguide</Display>
         </header>
+
+        <Block title="Heading typeface comparison — Phase 12b (delete after decision)">
+          <TypefaceComparison />
+        </Block>
 
         <Block title="Ridgeline mark">
           <div className="flex flex-wrap items-center gap-8">

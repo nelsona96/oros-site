@@ -39,14 +39,20 @@ export default function RootLayout({
       lang="en"
       className={cn("dark", instrumentSerif.variable, instrumentSans.variable, ibmPlexMono.variable)}
     >
-      <body>
+      {/*
+       * flex min-h-dvh + main's flex-1 is the sticky-footer pattern: main
+       * grows to fill any leftover viewport height on a short page, pushing
+       * Footer down to the bottom instead of leaving it stranded partway up
+       * (Header is `fixed`, so it's out of flow and unaffected either way).
+       */}
+      <body className="flex min-h-dvh flex-col">
         <Header />
         {/*
          * pt-20 clears the fixed header for ordinary pages. Phase 6's hero
          * renders full-bleed under the transparent header instead, so it
          * will opt out of this padding on its own page.
          */}
-        <main className="pt-20">{children}</main>
+        <main className="flex-1 pt-20">{children}</main>
         <Footer />
       </body>
     </html>

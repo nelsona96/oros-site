@@ -66,4 +66,10 @@ describe("FilmPlayer", () => {
     const { container } = render(<FilmPlayer film={baseFilm} />);
     expect(container.querySelector("mux-player")).not.toHaveAttribute("poster");
   });
+
+  it("overrides media-chrome's default blue focus ring with the site's accent color", () => {
+    const { container } = render(<FilmPlayer film={baseFilm} />);
+    const style = container.querySelector("mux-player")?.getAttribute("style");
+    expect(style).toContain("--media-focus-box-shadow: inset 0 0 0 2px var(--light-solid)");
+  });
 });

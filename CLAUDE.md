@@ -187,7 +187,13 @@ stacked-PR merge to go wrong once already (step 5 below explains why).
    reported it deleted, back when this setting was off. If it's ever off
    again for some reason, fall back to `git push origin --delete <branch>`,
    verified with `git ls-remote --heads origin` — not the locally-cached
-   `git branch -a`, which can lag behind what's actually on GitHub.)
+   `git branch -a`, which can lag behind what's actually on GitHub. Cleaned
+   up 9 such pre-dating-the-setting branches this way once already — if
+   `git push origin --delete` gets blocked by Claude Code's own auto-mode
+   safety classifier on the first attempt even after the user approves it
+   in chat, that's a harness-level permission gate, not a code problem;
+   re-running the identical command after the user's approval — which
+   surfaces the actual permission prompt — goes through.)
 
 **Maintaining this file:** when you hit a workflow, tooling, or consistency
 gotcha a future agent would otherwise rediscover the hard way — not a

@@ -575,3 +575,77 @@ Phase 10b built `/contact` — the form, `/api/contact`, and the first real
   sandbox address (`onboarding@resend.dev`) — sending still works today,
   delivery just isn't from `@oros...` yet. Swap `FROM_ADDRESS` in
   `app/api/contact/route.ts` once a domain is verified.
+
+---
+
+# Established patterns (Phase 13)
+
+Phase 13 built SEO/analytics/system pages: per-route metadata, `next/og` OG
+images, `sitemap.ts`/`robots.ts`, partial LocalBusiness JSON-LD, Vercel
+Analytics, `not-found`/`error`/`loading`, and empty states for filtered
+views. `NEXT_PUBLIC_SITE_URL` (new env var, see `.env.example`) backs
+`metadataBase`/sitemap/robots/JSON-LD — currently a placeholder Vercel
+domain, swap once Phase 15 assigns a real one.
+
+## Next.js metadata gotchas
+
+- **A route's own `openGraph` object silently drops the parent's
+  file-convention OG image.** `next/og`'s `opengraph-image.tsx` file
+  convention only auto-attaches to a segment that does *not* otherwise
+  define its own `openGraph` metadata; once a route returns one (needed
+  here for per-page title/description), the image inherited from an
+  ancestor segment — e.g. the root `app/opengraph-image.tsx` — is dropped
+  rather than merged in. Confirmed by hand: `/portfolio/photos` showed no
+  `og:image` meta tag at all until its `openGraph` object explicitly named
+  `images: ["/opengraph-image"]`. Fix: `lib/metadata.ts`'s `pageMetadata()`
+  defaults `image` to `"/opengraph-image"` for every route; a route with
+  its *own* sibling `opengraph-image.tsx` (the film page's dynamic
+  per-thumbnail one) passes `image: null` to opt out, since that one
+  attaches correctly on its own and would otherwise be clobbered by the
+  generic default.
+- **The same shallow-replace rule applies to `twitter`**: a route-level
+  `twitter` object without a `card` field silently reset the card type from
+  the root layout's `summary_large_image` back to Next's own default
+  `summary`. `pageMetadata()` sets `card: "summary_large_image"` explicitly
+  on every call rather than relying on inheritance.
+- **`next/og`'s `ImageResponse` needs real font bytes, not a `next/font`
+  loader** — Satori can't consume what `next/font/google` produces. Fetch a
+  static (non-variable) instance from Google Fonts directly: requesting the
+  CSS2 endpoint with an old-Firefox `User-Agent` string gets back a `.ttf`
+  `src` URL (a modern UA gets `.woff2`, which older Satori/Resvg parses
+  less reliably) — download that once and commit it (`app/fonts/
+  fraunces-og-600.ttf`), then `readFile(join(process.cwd(), ...))` it at
+  request time per Next's own documented pattern. Only `ttf`/`otf`/`woff`
+  are supported, `ttf`/`otf` preferred for parse speed.
+- **This Next version's `error.js` convention exposes `unstable_retry`, not
+  `reset`, as the primary recovery API** — the bundled docs say to prefer
+  it ("in most cases, you should use `unstable_retry()` instead"); `reset`
+  still exists but is now the fallback case. `app/error.tsx` uses
+  `unstable_retry`.
+
+## Testing gotcha
+
+- **Never name a component (or anything else) `Error`, even locally within
+  a file — it silently breaks React hooks in this test environment.**
+  `app/error.tsx`'s default export was originally named `Error` (matching
+  Next's own doc examples), and every hook in it threw "Cannot read
+  properties of null (reading 'useEffect')" — the classic invalid-hook-call
+  symptom — only in Vitest/RTL, not confirmed as a real-browser issue but
+  not worth the risk either way. Renaming the function to `RouteError`
+  (the file/export-default convention Next actually requires is unrelated
+  to the function's own name) fixed it immediately. Don't reuse a global
+  built-in's name for a component identifier.
+
+## Tooling gotcha
+
+- **`npm install @vercel/analytics` throws an ERESOLVE conflict** over an
+  irrelevant optional peer: `@vercel/analytics` optionally supports
+  SvelteKit, whose own peer (`@sveltejs/vite-plugin-svelte`) wants
+  `vite@^8`, conflicting with the `vite@7.x` this repo's `vitest` already
+  installs. **Use `npm install @vercel/analytics --force`, not
+  `--legacy-peer-deps`** — `--force` bypasses just that one conflict and
+  installs cleanly (confirmed: `npm test` still 123/123 green after);
+  `--legacy-peer-deps` reflows the *entire* dependency tree under npm v6
+  resolution rules and silently dropped `@testing-library/dom`, breaking
+  every test file with "Cannot find package '@testing-library/dom'" until
+  reverted.

@@ -203,7 +203,16 @@ inquiry-type field is what lets him triage a wedding from a brand shoot at a gla
 - Validation with Zod, shared between client and Route Handler
 - **Honeypot** hidden field — a public form on a photography site attracts bots immediately
 - Basic per-IP rate limiting in the handler
-- Resend sends a formatted email to `CONTACT_TO_EMAIL`, `replyTo` set to the submitter
+- Resend sends an HTML email (with a plain-text fallback) to `CONTACT_TO_EMAIL`, `replyTo`
+  set to the submitter. Triage fields (type, event date, location, budget) lead, in the
+  order your friend actually needs to scan them, followed by the message, followed by the
+  submitter's contact info with tappable `tel:`/`mailto:` links — see `lib/contact-email.ts`
+  for the templates.
+- A second email — Resend again, `replyTo` set to `CONTACT_TO_EMAIL` — auto-replies to the
+  submitter confirming their message arrived, quoting it back for their own reference. Its
+  failure doesn't fail the request: your friend's notification is what actually matters, so
+  a bounced or slow auto-reply just gets logged server-side rather than reported to the
+  submitter as an error.
 - Success and failure states written per DESIGN.md's copy guidance: errors say what
   happened and what to do, and never apologize
 

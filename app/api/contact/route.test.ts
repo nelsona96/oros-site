@@ -84,8 +84,8 @@ describe("POST /api/contact", () => {
       expect.objectContaining({
         to: "studio@example.com",
         replyTo: "jamie@example.com",
-        subject: expect.stringContaining("Weddings"),
-        html: expect.stringContaining("Weddings"),
+        subject: expect.stringContaining("Wedding"),
+        html: expect.stringContaining("Wedding"),
         text: expect.stringContaining("Phone: 555-0100"),
       }),
     );

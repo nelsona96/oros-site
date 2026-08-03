@@ -1,5 +1,4 @@
-import { categoryLabel } from "./film";
-import type { ContactFormValues } from "./contact-schema";
+import { inquiryTypeLabel, type ContactFormValues } from "./contact-schema";
 
 export interface EmailContent {
   subject: string;
@@ -72,7 +71,7 @@ function fieldRowsHtml(rows: Array<[string, string]>): string {
  */
 export function buildInquiryNotification(values: ContactFormValues): EmailContent {
   const { name, email, phone, inquiryType, location, eventDate, budget, message } = values;
-  const typeLabel = categoryLabel(inquiryType);
+  const typeLabel = inquiryTypeLabel(inquiryType);
 
   const triageRows: Array<[string, string]> = [["Type", escapeHtml(typeLabel)]];
   if (eventDate) triageRows.push(["Date", escapeHtml(eventDate)]);
@@ -118,7 +117,7 @@ export function buildInquiryNotification(values: ContactFormValues): EmailConten
 /** Confirms receipt to the person who submitted the form — not a substitute for a real reply, just a "this arrived" signal. */
 export function buildAutoReply(values: ContactFormValues): EmailContent {
   const { name, inquiryType, message } = values;
-  const typeLabel = categoryLabel(inquiryType);
+  const typeLabel = inquiryTypeLabel(inquiryType);
   const firstName = name.trim().split(/\s+/)[0] ?? name;
 
   const subject = "We got your message — Oros Productions";

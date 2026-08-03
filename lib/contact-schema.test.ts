@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { contactSchema } from "./contact-schema";
+import { contactSchema, inquiryTypeLabel } from "./contact-schema";
 
 const valid = {
   name: "Jamie",
@@ -55,5 +55,17 @@ describe("contactSchema", () => {
   it("accepts a filled-in honeypot at the schema level — detecting it is /api/contact's job, not validation's", () => {
     const result = contactSchema.safeParse({ ...valid, company: "Acme Bots Inc" });
     expect(result.success).toBe(true);
+  });
+});
+
+describe("inquiryTypeLabel", () => {
+  it("singularizes 'weddings' — one person inquires about their wedding, not their weddings", () => {
+    expect(inquiryTypeLabel("weddings")).toBe("Wedding");
+  });
+
+  it("leaves the other three verticals as-is, since they already read fine singular or plural", () => {
+    expect(inquiryTypeLabel("commercial")).toBe("Commercial");
+    expect(inquiryTypeLabel("portrait")).toBe("Portrait");
+    expect(inquiryTypeLabel("ministry")).toBe("Ministry");
   });
 });

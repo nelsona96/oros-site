@@ -46,7 +46,7 @@ describe("ContactForm", () => {
     render(<ContactForm />);
 
     fillRequiredTextFields();
-    await selectInquiryType("Weddings");
+    await selectInquiryType("Wedding");
     fireEvent.click(screen.getByRole("button", { name: /send message/i }));
 
     await waitFor(() => expect(toastSuccess).toHaveBeenCalled());
@@ -62,7 +62,7 @@ describe("ContactForm", () => {
     render(<ContactForm />);
 
     fillRequiredTextFields();
-    await selectInquiryType("Weddings");
+    await selectInquiryType("Wedding");
     const submit = screen.getByRole("button", { name: /send message/i });
     fireEvent.click(submit);
     fireEvent.click(submit);
@@ -79,7 +79,7 @@ describe("ContactForm", () => {
     render(<ContactForm />);
 
     fillRequiredTextFields();
-    await selectInquiryType("Weddings");
+    await selectInquiryType("Wedding");
     fireEvent.click(screen.getByRole("button", { name: /send message/i }));
 
     await waitFor(() => expect(toastError).toHaveBeenCalledWith("Contact form isn't configured yet."));

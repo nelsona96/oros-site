@@ -93,6 +93,17 @@ tracing it back (`gold-9`).
 - Query result caching is only observable in a **production build**
   (`next build && next start`) — `next dev` doesn't cache fetches the same
   way, so don't try to verify revalidation behavior against the dev server.
+- **Content written via `scripts/seed.ts` (or any direct Sanity API write)
+  bypasses `/api/revalidate`**, so Next's persistent Data Cache
+  (`.next/cache/fetch-cache`) has no signal to invalidate — it survives
+  across `next build` runs by design (that's the same mechanism that makes
+  on-demand `revalidateTag` work on a live deploy). Confirmed: reseeding
+  Sanity, then running `next build && next start`, still served stale
+  pre-seed Services/Testimonials data even though the build ran *after* the
+  reseed — the fetch-cache directory itself predated it. Fix: `rm -rf .next`
+  (the whole directory, not just `.next/cache/fetch-cache`) before rebuilding
+  whenever verifying against freshly-seeded/edited content locally — a plain
+  rebuild without clearing it first is not sufficient.
 
 ## Testing
 

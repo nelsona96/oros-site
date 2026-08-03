@@ -18,7 +18,7 @@ test("contact form submits successfully with the network call mocked", async ({ 
     .fill("We're planning a fall wedding and would love to talk about coverage.");
 
   await page.getByRole("combobox", { name: "Type of shoot" }).click();
-  await page.getByRole("option", { name: "Weddings" }).click();
+  await page.getByRole("option", { name: "Wedding" }).click();
 
   await page.getByRole("button", { name: /send message/i }).click();
 

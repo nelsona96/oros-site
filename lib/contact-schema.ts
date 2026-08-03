@@ -4,6 +4,25 @@ import { CATEGORIES, type Category } from "./sanity/types";
 /** The four verticals, reused as the inquiry-type options per SPEC.md §5. */
 const INQUIRY_TYPES = CATEGORIES.map((c) => c.value) as [Category, ...Category[]];
 
+/**
+ * Singular framing for anywhere copy describes *this one* inquiry — the
+ * "Type of shoot" dropdown, the notification email's triage row, the
+ * auto-reply's "your ___ inquiry" — distinct from `categoryLabel` (lib/film.ts),
+ * whose plural framing is correct for a portfolio *category* of many photos
+ * or films. Only "Weddings" actually differs: a person inquires about their
+ * wedding, not their "weddings."
+ */
+const INQUIRY_TYPE_LABELS: Record<Category, string> = {
+  weddings: "Wedding",
+  commercial: "Commercial",
+  portrait: "Portrait",
+  ministry: "Ministry",
+};
+
+export function inquiryTypeLabel(category: Category): string {
+  return INQUIRY_TYPE_LABELS[category];
+}
+
 /** Conventional for photography/videography inquiry forms — lets a studio triage fit before the first call. */
 export const BUDGET_RANGES = ["Under $2,500", "$2,500–$5,000", "$5,000–$10,000", "$10,000+", "Not sure yet"] as const;
 

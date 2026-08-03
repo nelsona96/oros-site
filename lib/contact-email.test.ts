@@ -17,7 +17,7 @@ const values: ContactFormValues = {
 describe("buildInquiryNotification", () => {
   it("puts the triage fields (type, date, location, budget) before the message", () => {
     const { html } = buildInquiryNotification(values);
-    const typeIndex = html.indexOf("Weddings");
+    const typeIndex = html.indexOf("Wedding");
     const budgetIndex = html.indexOf("$5,000");
     const messageIndex = html.indexOf("We&#39;re planning");
     expect(typeIndex).toBeGreaterThan(-1);
@@ -56,7 +56,7 @@ describe("buildInquiryNotification", () => {
   it("includes the submitter's name in the subject", () => {
     const { subject } = buildInquiryNotification(values);
     expect(subject).toContain("Jamie Rivera");
-    expect(subject).toContain("Weddings");
+    expect(subject).toContain("Wedding");
   });
 });
 
@@ -77,5 +77,12 @@ describe("buildAutoReply", () => {
   it("has a subject that doesn't read as a triage notification", () => {
     const { subject } = buildAutoReply(values);
     expect(subject.toLowerCase()).not.toContain("new inquiry");
+  });
+
+  it("refers to 'your wedding inquiry', singular — one person has one wedding, not several", () => {
+    const { html, text } = buildAutoReply(values);
+    expect(html).toContain("your wedding inquiry");
+    expect(text).toContain("your wedding inquiry");
+    expect(html).not.toContain("your weddings inquiry");
   });
 });

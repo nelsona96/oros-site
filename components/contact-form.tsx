@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { BUDGET_RANGES, contactSchema, type ContactFormValues } from "@/lib/contact-schema";
+import { BUDGET_RANGES, contactSchema, inquiryTypeLabel, type ContactFormValues } from "@/lib/contact-schema";
 import { CATEGORIES } from "@/lib/sanity/types";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -21,7 +21,9 @@ const ERROR_CLASSES = "text-sm text-destructive";
  * closes) — without it, the trigger falls back to the raw stored value
  * ("commercial") instead of the label ("Commercial") once a choice is made.
  */
-const INQUIRY_TYPE_ITEMS = Object.fromEntries(CATEGORIES.map((category) => [category.value, category.label]));
+const INQUIRY_TYPE_ITEMS = Object.fromEntries(
+  CATEGORIES.map((category) => [category.value, inquiryTypeLabel(category.value)]),
+);
 
 /**
  * Separately from the label-map bug above: Base UI's Select also measures
@@ -164,7 +166,7 @@ export function ContactForm() {
               <SelectContent alignItemWithTrigger={false}>
                 {CATEGORIES.map((category) => (
                   <SelectItem key={category.value} value={category.value}>
-                    {category.label}
+                    {inquiryTypeLabel(category.value)}
                   </SelectItem>
                 ))}
               </SelectContent>

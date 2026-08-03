@@ -1,8 +1,16 @@
+import type { Metadata } from "next";
 import { Container } from "@/components/container";
 import { Section } from "@/components/section";
-import { Display, Eyebrow } from "@/components/typography";
+import { Body, Display, Eyebrow } from "@/components/typography";
 import { VideoCard } from "@/components/video-card";
 import { getFilms } from "@/lib/sanity/queries";
+import { pageMetadata } from "@/lib/metadata";
+
+export const metadata: Metadata = pageMetadata({
+  title: "Videos",
+  description: "Films across weddings, commercial work, portraiture, and ministry.",
+  path: "/portfolio/videos",
+});
 
 export default async function VideosPage() {
   const films = await getFilms();
@@ -22,7 +30,9 @@ export default async function VideosPage() {
               <VideoCard key={film._id} film={film} />
             ))}
           </div>
-        ) : null}
+        ) : (
+          <Body className="py-16 text-center">No films published yet.</Body>
+        )}
       </Container>
     </Section>
   );

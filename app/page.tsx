@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { AboutSummary } from "@/components/about-summary";
 import { ContactCta } from "@/components/contact-cta";
 import { Hero } from "@/components/hero";
@@ -12,6 +13,15 @@ import {
   getSiteSettings,
   getTestimonials,
 } from "@/lib/sanity/queries";
+import { DEFAULT_DESCRIPTION, pageMetadata } from "@/lib/metadata";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getSiteSettings();
+  return pageMetadata({
+    description: settings?.tagline ?? DEFAULT_DESCRIPTION,
+    path: "/",
+  });
+}
 
 export default async function Home() {
   const [settings, photos, films, services, testimonials] = await Promise.all([

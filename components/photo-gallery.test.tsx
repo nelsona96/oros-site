@@ -204,6 +204,14 @@ describe("PhotoGallery", () => {
     expect(screen.getByAltText("Photo p3")).toBeInTheDocument();
   });
 
+  it("shows an empty-state message instead of blank space when a category has no photos", () => {
+    render(<PhotoGallery photos={photos} />);
+    fireEvent.click(screen.getByRole("button", { name: "Commercial" }));
+
+    expect(screen.queryAllByRole("img")).toHaveLength(0);
+    expect(screen.getByText(/no photos in this category yet/i)).toBeInTheDocument();
+  });
+
   it("preloads every photo's full-size image up front, unfiltered", () => {
     render(<PhotoGallery photos={photos} />);
     fireEvent.click(screen.getByRole("button", { name: "Ministry" }));

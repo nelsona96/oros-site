@@ -1,9 +1,17 @@
+import type { Metadata } from "next";
 import { ContactForm } from "@/components/contact-form";
 import { ContactInfo } from "@/components/contact-info";
 import { Container } from "@/components/container";
 import { Section } from "@/components/section";
 import { Display, Eyebrow } from "@/components/typography";
 import { getSiteSettings } from "@/lib/sanity/queries";
+import { pageMetadata } from "@/lib/metadata";
+
+export const metadata: Metadata = pageMetadata({
+  title: "Contact",
+  description: "Get in touch about weddings, commercial work, portraits, or ministry film.",
+  path: "/contact",
+});
 
 export default async function ContactPage() {
   const settings = await getSiteSettings();

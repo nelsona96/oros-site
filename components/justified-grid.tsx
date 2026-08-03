@@ -2,6 +2,7 @@
 
 import { useRef, type ReactNode } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { urlFor } from "@/lib/sanity/image";
 import type { SanityImage } from "@/lib/sanity/types";
 
@@ -28,6 +29,8 @@ export type JustifiedGridItem = {
   image: SanityImage;
   alt: string;
   overlay?: ReactNode;
+  /** Real navigation (e.g. SelectedWork deep-linking into the portfolio lightbox), not an in-page action — see the `<Link>` vs `<button>` note below. */
+  href?: string;
 };
 
 /**
@@ -66,14 +69,20 @@ export type JustifiedGridItem = {
  * a rewrite.
  *
  * Shared between the real portfolio grid (`PhotoGallery`, every item
- * clickable to open the lightbox) and `SelectedWork`'s featured strip
- * (mixed photos and films, nothing clickable yet — deep-linking into the
- * lightbox is Phase 12f). Whether `onItemClick` is passed decides which
- * shape each item renders as: a real `<button>` (keyboard-focusable, roving
- * Arrow Left/Right focus, hover/focus affordances) when there's an action
- * to take, or a plain non-interactive `<div>` when there isn't — a
- * hover-fade or focus ring on something that does nothing on click/Enter
- * would be a false affordance.
+ * clickable to open the in-page lightbox via the grid-level `onItemClick`)
+ * and `SelectedWork`'s featured strip (Phase 12f: each featured photo's
+ * item carries its own `href` — `/portfolio/photos?photo=<id>` — deep-
+ * linking into the *portfolio's* lightbox via Phase 12e's URL state,
+ * since SelectedWork isn't the page that lightbox lives on). Per item,
+ * that's the real distinction between the two mechanisms: `href` is
+ * navigation to a different page/URL (a real `<a>`, matching how the web
+ * expects navigation to work — back button, open-in-new-tab, the works),
+ * `onItemClick` is an in-page action with no URL of its own (a `<button>`).
+ * An item's own `href` wins if both are somehow available; a plain
+ * non-interactive `<div>` renders when neither is — a hover-fade or focus
+ * ring on something that does nothing on click/Enter would be a false
+ * affordance. Roving Arrow Left/Right focus works the same way regardless
+ * of which interactive element a given item rendered as.
  *
  * Each interactive item's accessible name comes from `alt`; the focus ring
  * is a normal (outset) ring, not `ring-inset`: an inset box-shadow paints
@@ -89,9 +98,12 @@ export function JustifiedGrid({
   items: JustifiedGridItem[];
   onItemClick?: (index: number) => void;
 }) {
-  const buttonRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const itemRefs = useRef<(HTMLButtonElement | HTMLAnchorElement | null)[]>([]);
 
   if (items.length === 0) return null;
+
+  const INTERACTIVE_CLASSES =
+    "reveal group touch-manipulation relative min-w-0 cursor-pointer focus-visible:z-10";
 
   return (
     <div className="flex flex-wrap items-start gap-2 [--row-h:200px] sm:[--row-h:260px] lg:[--row-h:320px]">
@@ -113,39 +125,58 @@ export function JustifiedGrid({
             className="object-contain transition-opacity group-hover:opacity-90"
           />
         );
+        const onKeyDown = (event: React.KeyboardEvent) => {
+          if (event.key === "ArrowRight") {
+            event.preventDefault();
+            itemRefs.current[index + 1]?.focus();
+          } else if (event.key === "ArrowLeft") {
+            event.preventDefault();
+            itemRefs.current[index - 1]?.focus();
+          }
+        };
 
-        if (!onItemClick) {
+        if (item.href) {
           return (
-            <div key={item.id} className="reveal relative min-w-0" style={style}>
+            <Link
+              key={item.id}
+              href={item.href}
+              ref={(el) => {
+                itemRefs.current[index] = el;
+              }}
+              onKeyDown={onKeyDown}
+              className={INTERACTIVE_CLASSES}
+              style={style}
+            >
               {image}
               {item.overlay}
-            </div>
+            </Link>
+          );
+        }
+
+        if (onItemClick) {
+          return (
+            <button
+              key={item.id}
+              ref={(el) => {
+                itemRefs.current[index] = el;
+              }}
+              type="button"
+              onClick={() => onItemClick(index)}
+              onKeyDown={onKeyDown}
+              className={INTERACTIVE_CLASSES}
+              style={style}
+            >
+              {image}
+              {item.overlay}
+            </button>
           );
         }
 
         return (
-          <button
-            key={item.id}
-            ref={(el) => {
-              buttonRefs.current[index] = el;
-            }}
-            type="button"
-            onClick={() => onItemClick(index)}
-            onKeyDown={(event) => {
-              if (event.key === "ArrowRight") {
-                event.preventDefault();
-                buttonRefs.current[index + 1]?.focus();
-              } else if (event.key === "ArrowLeft") {
-                event.preventDefault();
-                buttonRefs.current[index - 1]?.focus();
-              }
-            }}
-            className="reveal group touch-manipulation relative min-w-0 cursor-pointer focus-visible:z-10"
-            style={style}
-          >
+          <div key={item.id} className="reveal relative min-w-0" style={style}>
             {image}
             {item.overlay}
-          </button>
+          </div>
         );
       })}
       {Array.from({ length: FILLER_COUNT }, (_, i) => (

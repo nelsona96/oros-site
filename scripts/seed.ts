@@ -80,31 +80,36 @@ const TESTIMONIALS = [
 ];
 
 // Real copy from docs/DESIGN.md §1 — these aren't placeholders, the four
-// verticals are permanent site content.
+// verticals are permanent site content. coverImage stays a Picsum
+// placeholder like everything else here, per Phase 12f.
 const SERVICES = [
   {
     slugValue: "weddings",
     title: "Weddings & Events",
     blurb: "Couples, families, celebrations.",
     order: 1,
+    picsumId: 1062,
   },
   {
     slugValue: "commercial",
     title: "Commercial & Brand",
     blurb: "Product, interiors, campaign work.",
     order: 2,
+    picsumId: 1074,
   },
   {
     slugValue: "portrait",
     title: "Portrait & Editorial",
     blurb: "Headshots, musicians, personal branding.",
     order: 3,
+    picsumId: 1027,
   },
   {
     slugValue: "ministry",
     title: "Ministry",
     blurb: "Worship services, worship music, testimony films.",
     order: 4,
+    picsumId: 1059,
   },
 ];
 
@@ -162,6 +167,7 @@ async function seedTestimonials() {
 
 async function seedServices() {
   for (const s of SERVICES) {
+    const asset = await uploadPicsumImageById(s.picsumId, 1200, 675);
     await client.createOrReplace({
       _id: `service-${s.slugValue}`,
       _type: "service",
@@ -169,6 +175,13 @@ async function seedServices() {
       slug: { _type: "slug", current: s.slugValue },
       blurb: s.blurb,
       order: s.order,
+      // No nested alt field on coverImage — the schema doesn't define one
+      // (Phase 12f keeps it that way, "no schema work"), so it renders
+      // decorative (empty alt) at the component level, same as film.thumbnail.
+      coverImage: {
+        _type: "image",
+        asset: { _type: "reference", _ref: asset._id },
+      },
     });
     console.log(`  service ${s.slugValue}`);
   }

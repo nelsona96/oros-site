@@ -236,6 +236,19 @@ stacked-PR merge to go wrong once already (step 5 below explains why).
    re-running the identical command after the user's approval — which
    surfaces the actual permission prompt — goes through.)
 
+   **`gt sync --delete-all` does not clean up `graphite-base/<PR#>` branches**
+   — the side branches Graphite itself creates on the remote while merging a
+   stack, to track each PR's base during the sequential-merge process. These
+   are separate from the actual feature branches `gt sync` targets, have no
+   `gt` command that cleans them, and were found lingering on `origin` (5 of
+   them, `graphite-base/31`–`35`) well after their PRs had merged and their
+   real feature branches were long gone. Safe to delete once every PR in the
+   stack is merged and confirmed via `gh pr list --state open` that nothing
+   still bases off them: same `git push origin --delete <branch>` fallback
+   as above, verified against `git ls-remote --heads origin`. Worth checking
+   for after every stack merge, not just when a branch-count mismatch is
+   spotted by hand.
+
 **Maintaining this file:** when you hit a workflow, tooling, or consistency
 gotcha a future agent would otherwise rediscover the hard way — not a
 one-off — add it to the relevant section here proactively, in this same

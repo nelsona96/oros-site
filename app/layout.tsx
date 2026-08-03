@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
-import { Instrument_Serif, Instrument_Sans, IBM_Plex_Mono } from "next/font/google";
+import { Fraunces, Instrument_Sans, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { Toaster } from "@/components/ui/sonner";
 
-const instrumentSerif = Instrument_Serif({
-  variable: "--font-instrument-serif",
+const fraunces = Fraunces({
+  variable: "--font-fraunces",
   subsets: ["latin"],
   weight: ["400"],
 });
@@ -38,7 +38,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={cn("dark", instrumentSerif.variable, instrumentSans.variable, ibmPlexMono.variable)}
+      className={cn("dark", fraunces.variable, instrumentSans.variable, ibmPlexMono.variable)}
     >
       {/*
        * flex min-h-dvh + main's flex-1 is the sticky-footer pattern: main

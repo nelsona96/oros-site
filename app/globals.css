@@ -87,7 +87,7 @@
 }
 
 @theme inline {
-  --font-display: var(--font-instrument-serif);
+  --font-display: var(--font-fraunces);
   --font-body: var(--font-instrument-sans);
   --font-mono: var(--font-ibm-plex-mono);
   --font-sans: var(--font-body);

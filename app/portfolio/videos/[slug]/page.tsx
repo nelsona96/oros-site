@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Container } from "@/components/container";
@@ -6,6 +7,25 @@ import { Section } from "@/components/section";
 import { Body, Display, Eyebrow } from "@/components/typography";
 import { categoryLabel, formatDuration } from "@/lib/film";
 import { getFilmBySlug } from "@/lib/sanity/queries";
+import { pageMetadata } from "@/lib/metadata";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const film = await getFilmBySlug(slug);
+  if (!film) return { title: "Video" };
+
+  return pageMetadata({
+    title: film.title,
+    description: film.description ?? `${categoryLabel(film.category)} film by Oros Productions.`,
+    path: `/portfolio/videos/${slug}`,
+    // This route has its own sibling opengraph-image.tsx, dynamic per film.
+    image: null,
+  });
+}
 
 /**
  * Deliberately no `loading.tsx` here (unlike the intercepted modal route's

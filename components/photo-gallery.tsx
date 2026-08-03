@@ -119,14 +119,25 @@ function LightboxPreloadLinks({ photos }: { photos: Photo[] }) {
   );
 }
 
+/** SPEC.md §4: a filtered view with nothing published yet gets a real message, not blank space. */
+function EmptyPhotos() {
+  return (
+    <Body className="py-16 text-center">No photos in this category yet.</Body>
+  );
+}
+
 /** Non-interactive stand-in for the Suspense fallback below — see PhotoGallery's comment. */
 function PhotoGalleryFallback({ photos }: { photos: Photo[] }) {
   return (
     <>
       <CategoryFilter active={undefined} onSelect={() => {}} />
-      <JustifiedGrid
-        items={photos.map((photo) => ({ id: photo._id, image: photo.image, alt: photo.image.alt ?? "" }))}
-      />
+      {photos.length > 0 ? (
+        <JustifiedGrid
+          items={photos.map((photo) => ({ id: photo._id, image: photo.image, alt: photo.image.alt ?? "" }))}
+        />
+      ) : (
+        <EmptyPhotos />
+      )}
     </>
   );
 }
@@ -258,10 +269,14 @@ function PhotoGalleryInner({ photos }: { photos: Photo[] }) {
   return (
     <>
       <CategoryFilter active={category} onSelect={handleCategoryChange} />
-      <JustifiedGrid
-        items={filtered.map((photo) => ({ id: photo._id, image: photo.image, alt: photo.image.alt ?? "" }))}
-        onItemClick={openPhoto}
-      />
+      {filtered.length > 0 ? (
+        <JustifiedGrid
+          items={filtered.map((photo) => ({ id: photo._id, image: photo.image, alt: photo.image.alt ?? "" }))}
+          onItemClick={openPhoto}
+        />
+      ) : (
+        <EmptyPhotos />
+      )}
 
       <Dialog open={index !== null} onOpenChange={(open) => !open && closePhoto()}>
         <DialogContent

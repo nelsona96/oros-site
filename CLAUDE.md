@@ -597,8 +597,9 @@ Phase 13 built SEO/analytics/system pages: per-route metadata, `next/og` OG
 images, `sitemap.ts`/`robots.ts`, partial LocalBusiness JSON-LD, Vercel
 Analytics, `not-found`/`error`/`loading`, and empty states for filtered
 views. `NEXT_PUBLIC_SITE_URL` (new env var, see `.env.example`) backs
-`metadataBase`/sitemap/robots/JSON-LD — currently a placeholder Vercel
-domain, swap once Phase 15 assigns a real one.
+`metadataBase`/sitemap/robots/JSON-LD — Phase 15 assigned the real (but
+still temporary) Vercel domain, `oros-productions.vercel.app`; swap again
+once the friend's own domain is live and connected.
 
 ## Favicons
 
@@ -685,3 +686,84 @@ domain, swap once Phase 15 assigns a real one.
   resolution rules and silently dropped `@testing-library/dom`, breaking
   every test file with "Cannot find package '@testing-library/dom'" until
   reverted.
+
+---
+
+# Established patterns (Phase 15)
+
+Phase 15 added Playwright E2E and shipped the first live deploy —
+`oros-productions.vercel.app`, a temporary Vercel-assigned domain until the
+friend's own domain is connected and `NEXT_PUBLIC_SITE_URL` swaps again.
+
+## Playwright / E2E
+
+- `playwright.config.ts` boots a local production build (`next build && next
+  start`) by default. Set `PLAYWRIGHT_BASE_URL` to point the same four specs
+  at a real deploy instead (what "all four specs pass against a preview
+  deploy," BUILD_PLAN.md's Phase 15 done-when criterion, actually means) —
+  `webServer` is skipped entirely in that case rather than trying to boot a
+  local server nothing will use.
+- **`e2e/` must be excluded from Vitest's own test discovery**
+  (`vitest.config.ts`'s `test.exclude`) — Playwright's `test`/`expect`
+  imports aren't Vitest's, and without the exclude Vitest picks up every
+  `*.spec.ts` under `e2e/` and fails them all with import errors. Two
+  separate test runners, two separate directories they each need to ignore.
+- The video-playback spec runs against **real Mux content** (whatever film
+  is first in the seeded/published data), not a mock — media-chrome's
+  controls (mux-player's underlying UI) render in an *open* shadow DOM, so
+  Playwright's role-based locators (`getByRole("button", { name: /^play$/i
+  })`) pierce it automatically without any special shadow-DOM handling.
+
+## Vercel deploy
+
+- **This repo has two `package.json`s** (root Next app + `studio/`, a fully
+  separate package per the Tooling section above) — when importing the
+  project into Vercel, the Root Directory setting must stay `.` (repo
+  root), not get pointed at `studio/`. Vercel's monorepo detection can
+  surface both as candidates during import; picking wrong builds the wrong
+  package entirely.
+- `NEXT_PUBLIC_SITE_URL` is inlined at **build** time (it backs
+  `metadataBase`/sitemap/robots/JSON-LD) — setting it in Vercel's project
+  settings after a deploy already happened doesn't retroactively fix that
+  deploy's output; a fresh build is required. Confirmed by hand: the first
+  deploy (env var deliberately left unset until the assigned domain was
+  known) served `sitemap.xml` and `og:url` still pointing at
+  `http://localhost:3000`, `lib/site.ts`'s dev fallback, until a redeploy
+  after setting the var picked it up.
+
+## Sanity webhook (production revalidation)
+
+- **No webhook existed at all until Phase 15** — confirmed via `npx sanity
+  hooks list` (studio/) returning empty — which is the actual root cause
+  behind a real bug report ("publishing a new hero video doesn't show up
+  on the live site"): every Sanity query has been correctly `revalidateTag`-tagged
+  since Phase 4, but nothing was ever calling `/api/revalidate` in
+  production to begin with. Not specific to the hero — this affected every
+  document type.
+- **`npx sanity hooks create` (this CLI version) doesn't create anything
+  programmatically** — despite taking the same flags as `list`/`delete`, it
+  just opens `manage.sanity.io/.../api/webhooks/new` in a browser for manual
+  entry (confirmed by reading `@sanity/cli`'s own source,
+  `node_modules/@sanity/cli/dist/commands/hooks/create.js`). There's no
+  `--unattended`-friendly path through the CLI itself.
+- **Scripted creation instead, direct against the Management HTTP API**
+  (`POST https://api.sanity.io/v2021-06-07/hooks/projects/{projectId}`,
+  bearer token from `~/.config/sanity/config.json`'s `authToken` — the same
+  auth the CLI itself already uses) — but the public docs' field names are
+  misleading for this API version. What actually validates, found by
+  reading the Joi validation errors back one field at a time: trigger
+  events and the GROQ filter are **nested under a `rule` object**, not
+  top-level (`rule: { on: ["create","update","delete"], filter: "..." }` —
+  note `on` wants present-tense `create`/`update`/`delete`, not
+  `created`/`updated`/`deleted` despite some published examples suggesting
+  otherwise), and `filter` as a bare top-level string (what most webhook
+  docs show) is rejected outright ("must be of type object") because it's
+  not nested. `secret` is the same value as `SANITY_REVALIDATE_SECRET`
+  end-to-end — the shared secret `/api/revalidate` already verifies
+  requests against.
+- Verify the endpoint side independently of whether Sanity's webhook is
+  configured right: `@sanity/webhook`'s `isValidSignature` has no matching
+  "sign a payload" export, so you can't easily hand-craft a fully-valid
+  signed test request — the practical verification is confirming the
+  webhook exists with the right URL/dataset/filter (`npx sanity hooks
+  list`) and then having a real publish in Studio confirm it end-to-end.

@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
-import { categoryLabel } from "@/lib/film";
+import { buildAutoReply, buildInquiryNotification } from "@/lib/contact-email";
 import { contactSchema } from "@/lib/contact-schema";
 import { isRateLimited } from "@/lib/rate-limit";
 
 // Resend's shared sandbox sender — swap for a verified domain address once
-// Phase 13 sets one up. Sending still works today; it just arrives "via
-// resend.dev" until then.
+// one exists (no domain registered yet as of Phase 14c; likely lines up with
+// Phase 15's domain purchase). Sending still works today; it just arrives
+// "via resend.dev" until then.
 const FROM_ADDRESS = "Oros Productions <onboarding@resend.dev>";
 
 export async function POST(request: Request) {
@@ -24,11 +25,9 @@ export async function POST(request: Request) {
     );
   }
 
-  const { name, email, phone, inquiryType, location, eventDate, budget, message, company } = parsed.data;
-
   // Honeypot tripped — report success without sending, so a bot gets no
   // signal that it was caught and no reason to adapt.
-  if (company) {
+  if (parsed.data.company) {
     return NextResponse.json({ ok: true });
   }
 
@@ -39,28 +38,35 @@ export async function POST(request: Request) {
   }
 
   const resend = new Resend(apiKey);
+  const notification = buildInquiryNotification(parsed.data);
   const { error } = await resend.emails.send({
     from: FROM_ADDRESS,
     to: toEmail,
-    replyTo: email,
-    subject: `New inquiry: ${categoryLabel(inquiryType)} — ${name}`,
-    text: [
-      `Name: ${name}`,
-      `Email: ${email}`,
-      phone ? `Phone: ${phone}` : null,
-      `Inquiry type: ${categoryLabel(inquiryType)}`,
-      location ? `Location: ${location}` : null,
-      eventDate ? `Event date: ${eventDate}` : null,
-      budget ? `Budget: ${budget}` : null,
-      "",
-      message,
-    ]
-      .filter((line) => line !== null)
-      .join("\n"),
+    replyTo: parsed.data.email,
+    subject: notification.subject,
+    html: notification.html,
+    text: notification.text,
   });
 
   if (error) {
     return NextResponse.json({ message: "That didn't send. Try again in a moment." }, { status: 502 });
+  }
+
+  // The auto-reply confirms receipt to the submitter — a nice-to-have on
+  // top of the notification your friend actually triages from. Its failure
+  // shouldn't turn an otherwise-successful inquiry into an error for the
+  // person who just submitted it; log it and move on instead.
+  const autoReply = buildAutoReply(parsed.data);
+  const { error: autoReplyError } = await resend.emails.send({
+    from: FROM_ADDRESS,
+    to: parsed.data.email,
+    replyTo: toEmail,
+    subject: autoReply.subject,
+    html: autoReply.html,
+    text: autoReply.text,
+  });
+  if (autoReplyError) {
+    console.error("Contact auto-reply failed to send", autoReplyError);
   }
 
   return NextResponse.json({ ok: true });

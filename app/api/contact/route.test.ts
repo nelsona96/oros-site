@@ -85,9 +85,43 @@ describe("POST /api/contact", () => {
         to: "studio@example.com",
         replyTo: "jamie@example.com",
         subject: expect.stringContaining("Weddings"),
+        html: expect.stringContaining("Weddings"),
         text: expect.stringContaining("Phone: 555-0100"),
       }),
     );
+  });
+
+  it("sends an auto-reply to the submitter after the notification, with reply-to set to the studio", async () => {
+    const { POST } = await import("./route");
+    const res = await POST(request(validBody));
+    expect(res.status).toBe(200);
+    expect(sendMock).toHaveBeenCalledTimes(2);
+    expect(sendMock).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        to: "jamie@example.com",
+        replyTo: "studio@example.com",
+        html: expect.any(String),
+        text: expect.any(String),
+      }),
+    );
+  });
+
+  it("still reports success even if the auto-reply itself fails to send", async () => {
+    sendMock
+      .mockResolvedValueOnce({ data: { id: "email_123" }, error: null })
+      .mockResolvedValueOnce({ data: null, error: { message: "submitter inbox rejected it" } });
+    const { POST } = await import("./route");
+    const res = await POST(request(validBody));
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ ok: true });
+  });
+
+  it("does not attempt the auto-reply when the notification itself fails", async () => {
+    sendMock.mockResolvedValue({ data: null, error: { message: "invalid sender" } });
+    const { POST } = await import("./route");
+    await POST(request(validBody));
+    expect(sendMock).toHaveBeenCalledTimes(1);
   });
 
   it("includes location and budget in the email body when provided", async () => {

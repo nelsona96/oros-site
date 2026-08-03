@@ -1,11 +1,19 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi, afterEach } from "vitest";
 import type { Photo } from "@/lib/sanity/types";
 
 vi.mock("@/lib/sanity/image", () => ({
   urlFor: () => ({
     width: () => ({ quality: () => ({ url: () => "https://cdn.sanity.io/photo.jpg" }) }),
   }),
+}));
+
+// Mirrors the real browser URL PhotoGallery reads via useSearchParams for
+// its initial deep-link lookup — set before render to simulate a deep link,
+// left empty (the default) for every other test.
+let mockSearch = "";
+vi.mock("next/navigation", () => ({
+  useSearchParams: () => new URLSearchParams(mockSearch),
 }));
 
 import { PhotoGallery } from "./photo-gallery";
@@ -34,6 +42,11 @@ const photos: Photo[] = [
 ];
 
 describe("PhotoGallery", () => {
+  afterEach(() => {
+    mockSearch = "";
+    window.history.replaceState(null, "", "/");
+  });
+
   it("does not render dialog content until a photo is clicked", () => {
     render(<PhotoGallery photos={photos} />);
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
@@ -101,6 +114,44 @@ describe("PhotoGallery", () => {
     render(<PhotoGallery photos={photos} />);
     fireEvent.click(screen.getByAltText("Photo p1"));
     fireEvent.click(screen.getByRole("button", { name: "Close" }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("pushes ?photo=<id> onto the URL when a photo is opened, and clears it on close", async () => {
+    render(<PhotoGallery photos={photos} />);
+    fireEvent.click(screen.getByAltText("Photo p1"));
+    expect(window.location.search).toBe("?photo=p1");
+
+    fireEvent.click(screen.getByRole("button", { name: "Close" }));
+    // Closing calls history.back() to pop the entry opening pushed, rather
+    // than pushing a "closed" entry of its own — jsdom (like real browsers)
+    // processes that navigation, and the popstate it fires, asynchronously.
+    await waitFor(() => expect(window.location.search).toBe(""));
+  });
+
+  it("replaces rather than pushes the URL when navigating prev/next inside the lightbox", () => {
+    render(<PhotoGallery photos={photos} />);
+    fireEvent.click(screen.getByAltText("Photo p1"));
+    const lengthAfterOpen = window.history.length;
+
+    fireEvent.click(screen.getByRole("button", { name: "Next photo" }));
+    expect(window.location.search).toBe("?photo=p2");
+    expect(window.history.length).toBe(lengthAfterOpen);
+  });
+
+  it("opens directly to the photo named in ?photo=<id> on mount (deep link)", () => {
+    mockSearch = "?photo=p3";
+    render(<PhotoGallery photos={photos} />);
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(screen.getByRole("dialog").querySelector('img[aria-hidden="false"]')).toHaveAttribute(
+      "alt",
+      "Photo p3",
+    );
+  });
+
+  it("ignores a ?photo=<id> that doesn't match any photo", () => {
+    mockSearch = "?photo=does-not-exist";
+    render(<PhotoGallery photos={photos} />);
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 

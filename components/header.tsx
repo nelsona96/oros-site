@@ -6,7 +6,10 @@ import { useEffect, useState } from "react";
 import { RidgelineMark } from "./ridgeline-mark";
 
 const NAV_LINKS = [
-  { href: "/portfolio/photos", label: "Work" },
+  // activeMatch broader than href: Work should stay highlighted on
+  // /portfolio/videos too, not just the /portfolio/photos it links to —
+  // both are "Work" as far as top-level nav is concerned.
+  { href: "/portfolio/photos", label: "Work", activeMatch: "/portfolio" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
 ];
@@ -41,7 +44,7 @@ export function Header() {
         </Link>
         <nav className="flex gap-6">
           {NAV_LINKS.map((link) => {
-            const isActive = pathname.startsWith(link.href);
+            const isActive = pathname.startsWith(link.activeMatch ?? link.href);
             return (
               <Link
                 key={link.href}

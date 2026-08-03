@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { urlFor } from "@/lib/sanity/image";
 import type { SiteSettings } from "@/lib/sanity/types";
@@ -11,9 +14,15 @@ import { Display, Eyebrow } from "./typography";
  * under the transparent header.
  *
  * The video and the poster <Image> are both always in the DOM; which one is
- * visible is decided purely by the `motion-reduce:`/`motion-safe:` CSS
- * variants, so reduced-motion users get a still frame with no JS branch and
- * no hydration mismatch risk.
+ * visible is decided by CSS for the `prefers-reduced-motion` case (the
+ * `motion-reduce:`/`motion-safe:` variants) and by `autoplayBlocked` state
+ * for the "motion is fine but the browser wouldn't autoplay anyway" case
+ * (Phase 12e) — Safari Low Power Mode, some in-app browsers, and similar
+ * are real, not hypothetical, and previously left the section showing an
+ * empty scrim over nothing rather than the poster. `autoplayBlocked`
+ * starts `false` on both server and initial client render (matching), so
+ * there's no hydration mismatch — it can only flip after mount, once the
+ * `play()` promise settles.
  *
  * The sunrise warm-up device from DESIGN.md §3 is deferred post-MVP — see
  * the note there for the implementation approach if it comes back.
@@ -25,16 +34,29 @@ export function Hero({ settings }: { settings: SiteSettings | null }) {
   const poster = settings?.heroPoster;
   const posterUrl = poster ? urlFor(poster).width(1920).quality(80).url() : undefined;
 
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [autoplayBlocked, setAutoplayBlocked] = useState(false);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.play().catch(() => setAutoplayBlocked(true));
+  }, []);
+
+  const videoVisible = Boolean(videoUrl && posterUrl) && !autoplayBlocked;
+
   return (
     <section className="relative -mt-20 h-[80svh] w-full overflow-hidden md:h-[85svh] lg:h-svh">
       {videoUrl && posterUrl ? (
         <video
-          className="absolute inset-0 h-full w-full object-cover motion-reduce:hidden"
+          ref={videoRef}
+          className={`absolute inset-0 h-full w-full object-cover motion-reduce:hidden ${
+            autoplayBlocked ? "hidden" : ""
+          }`}
           autoPlay
           muted
           loop
           playsInline
-          preload="auto"
           poster={posterUrl}
         >
           <source src={videoUrl} type="video/mp4" />
@@ -46,11 +68,11 @@ export function Hero({ settings }: { settings: SiteSettings | null }) {
           src={posterUrl}
           alt=""
           fill
-          priority
+          preload
           sizes="100vw"
           placeholder={poster?.asset.metadata.lqip ? "blur" : "empty"}
           blurDataURL={poster?.asset.metadata.lqip}
-          className={`object-cover ${videoUrl ? "hidden motion-reduce:block" : ""}`}
+          className={`object-cover ${videoVisible ? "hidden motion-reduce:block" : ""}`}
         />
       ) : (
         <div className="absolute inset-0 bg-app-bg" />

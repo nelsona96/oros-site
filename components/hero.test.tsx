@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { SiteSettings } from "@/lib/sanity/types";
 
@@ -7,6 +7,11 @@ vi.mock("@/lib/sanity/image", () => ({
     width: () => ({ quality: () => ({ url: () => "https://cdn.sanity.io/poster.jpg" }) }),
   }),
 }));
+
+// jsdom doesn't implement video playback ("Not implemented: HTMLMediaElement's
+// play() method") — stub it the same way this repo mocks other browser/
+// framework boundaries it can't run for real in tests.
+HTMLMediaElement.prototype.play = vi.fn().mockResolvedValue(undefined);
 
 import { Hero } from "./hero";
 
@@ -44,5 +49,16 @@ describe("Hero", () => {
     const { container } = render(<Hero settings={null} />);
     expect(screen.getByRole("heading", { name: "Oros Productions" })).toBeInTheDocument();
     expect(container.querySelector("video")).toBeNull();
+  });
+
+  it("falls back to the poster image when the browser blocks autoplay", async () => {
+    const resolvedPlay = HTMLMediaElement.prototype.play;
+    HTMLMediaElement.prototype.play = vi.fn().mockRejectedValue(new DOMException("blocked", "NotAllowedError"));
+
+    const { container } = render(<Hero settings={baseSettings} />);
+    await waitFor(() => expect(container.querySelector("video")).toHaveClass("hidden"));
+    expect(container.querySelector("img")).not.toHaveClass("hidden");
+
+    HTMLMediaElement.prototype.play = resolvedPlay;
   });
 });

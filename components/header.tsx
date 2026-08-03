@@ -49,6 +49,7 @@ export function Header() {
               <Link
                 key={link.href}
                 href={link.href}
+                aria-current={isActive ? "page" : undefined}
                 className={`${LINK_CLASSES} ${
                   isActive ? "text-text-light" : "text-text-primary hover:text-text-accent"
                 }`}

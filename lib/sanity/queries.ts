@@ -2,6 +2,31 @@ import { client } from "./client";
 import type { Category, Photo, Film, Testimonial, Service, SiteSettings } from "./types";
 
 /**
+ * Every query goes through this rather than calling `client.fetch` directly.
+ * A Sanity outage should degrade the page section-by-section (each
+ * component already self-guards on empty/missing data, per the established
+ * pattern) rather than throwing the whole route into `error.tsx` — a
+ * fallback here is indistinguishable from "nothing published yet" to the
+ * component that receives it, which is exactly the degraded-but-still-
+ * useful state we want. `error.tsx` stays as the backstop for errors that
+ * aren't a data fetch (a render error, a bug), not the first line of
+ * defense for a flaky upstream API.
+ */
+async function safeFetch<T>(
+  query: string,
+  params: Record<string, unknown>,
+  tags: string[],
+  fallback: T,
+): Promise<T> {
+  try {
+    return await client.fetch<T>(query, params, { next: { tags } });
+  } catch (error) {
+    console.error(`Sanity fetch failed (tags: ${tags.join(", ")})`, error);
+    return fallback;
+  }
+}
+
+/**
  * Dimensions and an LQIP are always selected (docs/SPEC.md §3) so the
  * justified grid never shifts — urlFor() builds the actual src per usage.
  */
@@ -66,65 +91,73 @@ const SITE_SETTINGS_PROJECTION = `{
 
 export async function getPhotos(category?: Category): Promise<Photo[]> {
   const filter = category ? "&& category == $category" : "";
-  return client.fetch<Photo[]>(
+  return safeFetch<Photo[]>(
     `*[_type == "photo" ${filter}] | order(order asc)${PHOTO_PROJECTION}`,
     { category },
-    { next: { tags: ["photo"] } },
+    ["photo"],
+    [],
   );
 }
 
 export async function getFeaturedPhotos(): Promise<Photo[]> {
-  return client.fetch<Photo[]>(
+  return safeFetch<Photo[]>(
     `*[_type == "photo" && featured == true] | order(order asc)${PHOTO_PROJECTION}`,
     {},
-    { next: { tags: ["photo"] } },
+    ["photo"],
+    [],
   );
 }
 
 export async function getFilms(): Promise<Film[]> {
-  return client.fetch<Film[]>(
+  return safeFetch<Film[]>(
     `*[_type == "film"] | order(order asc)${FILM_PROJECTION}`,
     {},
-    { next: { tags: ["film"] } },
+    ["film"],
+    [],
   );
 }
 
 export async function getFeaturedFilms(): Promise<Film[]> {
-  return client.fetch<Film[]>(
+  return safeFetch<Film[]>(
     `*[_type == "film" && featured == true] | order(order asc)${FILM_PROJECTION}`,
     {},
-    { next: { tags: ["film"] } },
+    ["film"],
+    [],
   );
 }
 
 export async function getFilmBySlug(slug: string): Promise<Film | null> {
-  return client.fetch<Film | null>(
+  return safeFetch<Film | null>(
     `*[_type == "film" && slug.current == $slug][0]${FILM_PROJECTION}`,
     { slug },
-    { next: { tags: ["film"] } },
+    ["film"],
+    null,
   );
 }
 
 export async function getTestimonials(): Promise<Testimonial[]> {
-  return client.fetch<Testimonial[]>(
+  return safeFetch<Testimonial[]>(
     `*[_type == "testimonial"] | order(order asc)${TESTIMONIAL_PROJECTION}`,
     {},
-    { next: { tags: ["testimonial"] } },
+    ["testimonial"],
+    [],
   );
 }
 
 export async function getServices(): Promise<Service[]> {
-  return client.fetch<Service[]>(
+  return safeFetch<Service[]>(
     `*[_type == "service"] | order(order asc)${SERVICE_PROJECTION}`,
     {},
-    { next: { tags: ["service"] } },
+    ["service"],
+    [],
   );
 }
 
 export async function getSiteSettings(): Promise<SiteSettings | null> {
-  return client.fetch<SiteSettings | null>(
+  return safeFetch<SiteSettings | null>(
     `*[_id == "siteSettings"][0]${SITE_SETTINGS_PROJECTION}`,
     {},
-    { next: { tags: ["siteSettings"] } },
+    ["siteSettings"],
+    null,
   );
 }

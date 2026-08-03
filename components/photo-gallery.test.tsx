@@ -67,6 +67,12 @@ describe("PhotoGallery", () => {
     expect(screen.queryByText(/·/)).not.toBeInTheDocument();
   });
 
+  it("falls back to a category-based accessible name when a photo has no caption", () => {
+    render(<PhotoGallery photos={photos} />);
+    fireEvent.click(screen.getByAltText("Photo p2"));
+    expect(screen.getByRole("dialog", { name: "Weddings photograph" })).toBeInTheDocument();
+  });
+
   it("disables previous at the first photo and next at the last", () => {
     render(<PhotoGallery photos={photos} />);
     fireEvent.click(screen.getByAltText("Photo p1"));

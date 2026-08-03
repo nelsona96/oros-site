@@ -57,6 +57,20 @@ describe("ContactForm", () => {
     expect((screen.getByLabelText("Name") as HTMLInputElement).value).toBe("");
   });
 
+  it("ignores a second submit fired before the first one resolves", async () => {
+    (fetch as ReturnType<typeof vi.fn>).mockResolvedValue({ ok: true, json: async () => ({ ok: true }) });
+    render(<ContactForm />);
+
+    fillRequiredTextFields();
+    await selectInquiryType("Weddings");
+    const submit = screen.getByRole("button", { name: /send message/i });
+    fireEvent.click(submit);
+    fireEvent.click(submit);
+
+    await waitFor(() => expect(toastSuccess).toHaveBeenCalled());
+    expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
   it("toasts the server's error message on a failed response", async () => {
     (fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: false,

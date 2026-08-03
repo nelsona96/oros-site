@@ -26,6 +26,7 @@ export function CategoryFilter({
     <nav className="flex flex-wrap gap-4">
       <button
         type="button"
+        aria-pressed={!active}
         onClick={() => onSelect(undefined)}
         className={`${BUTTON_CLASSES} ${!active ? "text-text-light" : "text-text-secondary hover:text-text-primary"}`}
       >
@@ -35,6 +36,7 @@ export function CategoryFilter({
         <button
           key={category.value}
           type="button"
+          aria-pressed={active === category.value}
           onClick={() => onSelect(category.value)}
           className={`${BUTTON_CLASSES} ${
             active === category.value ? "text-text-light" : "text-text-secondary hover:text-text-primary"

@@ -4,6 +4,7 @@ import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "rea
 import Image, { getImageProps } from "next/image";
 import { useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { categoryLabel } from "@/lib/film";
 import { urlFor } from "@/lib/sanity/image";
 import type { Category, Photo } from "@/lib/sanity/types";
 import { CategoryFilter } from "./category-filter";
@@ -302,7 +303,7 @@ function PhotoGalleryInner({ photos }: { photos: Photo[] }) {
           {active ? (
             <>
               <DialogTitle className="sr-only">
-                {active.caption ?? "Photo"}
+                {active.caption ?? `${categoryLabel(active.category)} photograph`}
               </DialogTitle>
 
               <DialogClose

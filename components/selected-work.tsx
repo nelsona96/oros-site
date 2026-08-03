@@ -12,9 +12,12 @@ type FilmWithThumbnail = Film & { thumbnail: NonNullable<Film["thumbnail"]> };
 /**
  * DESIGN.md §8.2: "a cross-vertical cut, leading into the portfolio."
  * Shares `JustifiedGrid` with the real portfolio grid (Phase 12d) rather
- * than its own CSS-columns layout — no `onItemClick`, so every item
- * renders as a plain non-interactive div; deep-linking a featured photo
- * into the portfolio lightbox is Phase 12f's job, not this one's.
+ * than its own CSS-columns layout. Each featured photo's item carries its
+ * own `href` (Phase 12f) — `/portfolio/photos?photo=<id>`, deep-linking
+ * into the portfolio's own lightbox via Phase 12e's URL state — so it
+ * renders as a real `<a>`, not a `<button onClick>`: this is navigation to
+ * a different page, not an in-page action. Films stay non-interactive;
+ * only photos were asked to deep-link here.
  *
  * Films without a hand-picked thumbnail are skipped rather than falling back
  * to a Mux poster here — pulling that in is Phase 9's job, not this one's.
@@ -28,6 +31,7 @@ export function SelectedWork({ photos, films }: { photos: Photo[]; films: Film[]
     id: photo._id,
     image: photo.image,
     alt: photo.image.alt ?? "",
+    href: `/portfolio/photos?photo=${photo._id}`,
   }));
 
   const filmItems: JustifiedGridItem[] = filmsWithThumbnail.map((film) => ({
@@ -47,13 +51,16 @@ export function SelectedWork({ photos, films }: { photos: Photo[]; films: Film[]
   return (
     <Section>
       <Container className="space-y-8">
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div className="space-y-4">
-            <Eyebrow>Selected Work</Eyebrow>
-            <Display as="h2" size="md">
-              A cross-vertical cut of recent work.
-            </Display>
-          </div>
+        <div className="space-y-4">
+          <Eyebrow>Selected Work</Eyebrow>
+          <Display as="h2" size="md">
+            A cross-vertical cut of recent work.
+          </Display>
+        </div>
+
+        <JustifiedGrid items={[...photoItems, ...filmItems]} />
+
+        <div className="flex justify-center">
           <Link
             href="/portfolio/photos"
             className="rounded-control flex items-center gap-1 font-mono text-xs tracking-widest text-text-primary uppercase transition-colors hover:text-text-accent"
@@ -62,8 +69,6 @@ export function SelectedWork({ photos, films }: { photos: Photo[]; films: Film[]
             <Icon icon={ChevronRight} size={16} />
           </Link>
         </div>
-
-        <JustifiedGrid items={[...photoItems, ...filmItems]} />
       </Container>
     </Section>
   );

@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { Toaster } from "@/components/ui/sonner";
+import { getSiteSettings } from "@/lib/sanity/queries";
 
 const fraunces = Fraunces({
   variable: "--font-fraunces",
@@ -30,11 +31,13 @@ export const metadata: Metadata = {
     "Photography and videography for weddings, commercial work, portraiture, and ministry film.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const settings = await getSiteSettings();
+
   return (
     <html
       lang="en"
@@ -54,7 +57,7 @@ export default function RootLayout({
          * will opt out of this padding on its own page.
          */}
         <main className="flex-1 pt-20">{children}</main>
-        <Footer />
+        <Footer settings={settings} />
         <Toaster />
       </body>
     </html>

@@ -61,6 +61,12 @@ describe("SelectedWork", () => {
     );
   });
 
+  it("deep-links each featured photo into the portfolio's own lightbox", () => {
+    const { container } = render(<SelectedWork photos={[photo]} films={[]} />);
+    const photoLink = container.querySelector("img")?.closest("a");
+    expect(photoLink).toHaveAttribute("href", "/portfolio/photos?photo=photo-1");
+  });
+
   it("renders a film with a thumbnail and skips one without", () => {
     const { container } = render(<SelectedWork photos={[]} films={[filmWithThumbnail, filmWithoutThumbnail]} />);
     expect(container.querySelectorAll("img")).toHaveLength(1);

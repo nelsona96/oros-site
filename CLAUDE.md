@@ -587,6 +587,29 @@ views. `NEXT_PUBLIC_SITE_URL` (new env var, see `.env.example`) backs
 `metadataBase`/sitemap/robots/JSON-LD — currently a placeholder Vercel
 domain, swap once Phase 15 assigns a real one.
 
+## Favicons
+
+- **`app/icon.svg`'s hand-written comment contained a literal `--` inside
+  the comment body** (`(--accent-solid)`), which is invalid XML — comments
+  can't contain `--` anywhere except the opening/closing delimiters
+  themselves. Browsers' lenient SVG parsers rendered it fine, masking the
+  bug, but strict XML parsers (confirmed: `sharp`/`librsvg`, used for the
+  favicon-generation work below) refused to parse it at all — a plausible
+  cause of the favicon silently failing in some non-browser consumers.
+  Regression-guarded by `app/icon.test.ts`, which greps every comment body
+  for `--`. Watch for this in any future SVG comment.
+- **`icon.svg` alone isn't enough for full favicon coverage** — Next also
+  supports `favicon.ico` (root `app/` only, the universal legacy fallback)
+  and `apple-icon.png` (iOS/Safari home-screen/bookmark icon) as sibling
+  file conventions, neither of which existed before Phase 13. Generated
+  both from the same ridgeline mark: `sharp` rasterizes `icon.svg` to PNG
+  at each target size, then ImageMagick's `convert` combines multiple PNGs
+  into one multi-resolution `.ico` (`sharp` itself can't emit `.ico`).
+  `apple-icon.png` needs an opaque background (Apple's own guidance — a
+  transparent one can render as solid black on older iOS) — used the same
+  `app-bg`/`sand-1` (`#111110`) the rest of the dark theme is built on,
+  matching `opengraph-image.tsx`'s treatment.
+
 ## Next.js metadata gotchas
 
 - **A route's own `openGraph` object silently drops the parent's

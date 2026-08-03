@@ -122,7 +122,9 @@ function LightboxPreloadLinks({ photos }: { photos: Photo[] }) {
 /** SPEC.md §4: a filtered view with nothing published yet gets a real message, not blank space. */
 function EmptyPhotos() {
   return (
-    <Body className="py-16 text-center">No photos in this category yet.</Body>
+    <Body className="py-16 text-center">
+      No photos here yet. Try a different category, or check back soon.
+    </Body>
   );
 }
 

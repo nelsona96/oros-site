@@ -18,7 +18,7 @@ function fillRequiredTextFields() {
 }
 
 async function selectInquiryType(label: string) {
-  fireEvent.click(screen.getByRole("combobox", { name: /this about/i }));
+  fireEvent.click(screen.getByRole("combobox", { name: /type of shoot/i }));
   fireEvent.click(await screen.findByRole("option", { name: label }));
 }
 

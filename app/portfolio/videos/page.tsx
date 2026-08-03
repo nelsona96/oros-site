@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Container } from "@/components/container";
 import { Section } from "@/components/section";
 import { Body, Display, Eyebrow } from "@/components/typography";
@@ -21,7 +22,7 @@ export default async function VideosPage() {
         <div className="space-y-4">
           <Eyebrow>Portfolio</Eyebrow>
           <Display as="h1" size="md">
-            Videos.
+            Film, in full.
           </Display>
         </div>
         {films.length > 0 ? (
@@ -31,7 +32,13 @@ export default async function VideosPage() {
             ))}
           </div>
         ) : (
-          <Body className="py-16 text-center">No films published yet.</Body>
+          <Body className="py-16 text-center">
+            No films published yet. In the meantime, see the{" "}
+            <Link href="/portfolio/photos" className="text-text-primary underline underline-offset-4 hover:text-text-accent">
+              photography
+            </Link>
+            .
+          </Body>
         )}
       </Container>
     </Section>

@@ -73,7 +73,7 @@ export function ContactForm() {
     });
 
     if (response.ok) {
-      toast.success("Message sent — expect a reply at the email you gave us.");
+      toast.success("Message sent. We'll reply to the email address you entered.");
       reset();
       return;
     }
@@ -116,7 +116,7 @@ export function ContactForm() {
       </div>
 
       <div className={FIELD_CLASSES}>
-        <Label htmlFor="inquiryType">What&rsquo;s this about?</Label>
+        <Label htmlFor="inquiryType">Type of shoot</Label>
         <Controller
           control={control}
           name="inquiryType"
@@ -133,7 +133,7 @@ export function ContactForm() {
               onValueChange={field.onChange}
             >
               <SelectTrigger id="inquiryType" className="w-full" aria-invalid={!!errors.inquiryType}>
-                <SelectValue placeholder="Choose one" />
+                <SelectValue placeholder="Select a type" />
               </SelectTrigger>
               <SelectContent alignItemWithTrigger={false}>
                 {CATEGORIES.map((category) => (
@@ -172,7 +172,7 @@ export function ContactForm() {
           render={({ field }) => (
             <Select key={layoutWidthBucket} value={field.value ?? ""} onValueChange={field.onChange}>
               <SelectTrigger id="budget" className="w-full">
-                <SelectValue placeholder="Choose a range" />
+                <SelectValue placeholder="Select a range" />
               </SelectTrigger>
               <SelectContent alignItemWithTrigger={false}>
                 {BUDGET_RANGES.map((range) => (

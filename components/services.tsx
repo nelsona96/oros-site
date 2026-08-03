@@ -32,7 +32,7 @@ export function Services({ services }: { services: Service[] }) {
         <div className="space-y-4">
           <Eyebrow>Services</Eyebrow>
           <Display as="h2" size="md">
-            Four verticals, one studio.
+            One studio, four specialties.
           </Display>
         </div>
 

@@ -22,7 +22,7 @@ export default async function PhotosPage() {
         <div className="space-y-4">
           <Eyebrow>Portfolio</Eyebrow>
           <Display as="h1" size="md">
-            Photos.
+            Photography, in full.
           </Display>
         </div>
         <PhotoGallery photos={photos} />

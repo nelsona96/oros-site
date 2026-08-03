@@ -54,7 +54,7 @@ export function SelectedWork({ photos, films }: { photos: Photo[]; films: Film[]
         <div className="space-y-4">
           <Eyebrow>Selected Work</Eyebrow>
           <Display as="h2" size="md">
-            A cross-vertical cut of recent work.
+            Recent work, worth a closer look.
           </Display>
         </div>
 

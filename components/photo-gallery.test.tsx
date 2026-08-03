@@ -209,7 +209,7 @@ describe("PhotoGallery", () => {
     fireEvent.click(screen.getByRole("button", { name: "Commercial" }));
 
     expect(screen.queryAllByRole("img")).toHaveLength(0);
-    expect(screen.getByText(/no photos in this category yet/i)).toBeInTheDocument();
+    expect(screen.getByText(/no photos here yet/i)).toBeInTheDocument();
   });
 
   it("preloads every photo's full-size image up front, unfiltered", () => {

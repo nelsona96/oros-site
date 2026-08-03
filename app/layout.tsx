@@ -1,10 +1,11 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Fraunces, Instrument_Sans, IBM_Plex_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
+import { RouteFocusManager } from "@/components/route-focus-manager";
 import { Toaster } from "@/components/ui/sonner";
 import { LocalBusinessJsonLd } from "@/components/local-business-jsonld";
 import { getSiteSettings } from "@/lib/sanity/queries";
@@ -49,6 +50,14 @@ export const metadata: Metadata = {
   },
 };
 
+// theme-color moved out of `metadata` per Next's own deprecation notice —
+// this Next version wants it on a separate `viewport` export instead.
+// #111110 is --app-bg / sand-1, matching app/icon.svg's apple-icon treatment.
+export const viewport: Viewport = {
+  themeColor: "#111110",
+  colorScheme: "dark",
+};
+
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -68,16 +77,29 @@ export default async function RootLayout({
        * (Header is `fixed`, so it's out of flow and unaffected either way).
        */}
       <body className="flex min-h-dvh flex-col">
+        <a
+          href="#main-content"
+          className="bg-app-bg text-text-primary ring-focus-ring rounded-control sr-only px-4 py-2 font-mono text-xs tracking-widest uppercase focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[60] focus:ring-2"
+        >
+          Skip to content
+        </a>
         <Header />
         {/*
          * pt-20 clears the fixed header for ordinary pages. Phase 6's hero
          * renders full-bleed under the transparent header instead, so it
-         * will opt out of this padding on its own page.
+         * will opt out of this padding on its own page. tabIndex=-1 + no
+         * visible outline: this is a landmark-focus target for the skip
+         * link and route-change focus management (RouteFocusManager), not a
+         * real interactive control, so it shouldn't show a focus ring of
+         * its own.
          */}
-        <main className="flex-1 pt-20">{children}</main>
+        <main id="main-content" tabIndex={-1} className="flex-1 pt-20 outline-none">
+          {children}
+        </main>
         <Footer settings={settings} />
         <Toaster />
         <LocalBusinessJsonLd settings={settings} />
+        <RouteFocusManager />
         <Analytics />
       </body>
     </html>

@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { BUDGET_RANGES, contactSchema, type ContactFormValues } from "@/lib/contact-schema";
@@ -82,8 +82,34 @@ export function ContactForm() {
     toast.error(body?.message ?? "That didn't send. Check your connection and try again.");
   }
 
+  const submitForm = handleSubmit(onSubmit);
+
+  // `formState.isSubmitting` already disables the submit button (below), but
+  // that's a re-render away from the click that triggers it — this ref
+  // guards synchronously, in case two submit events land in the same tick
+  // (e.g. Enter pressed twice quickly) before React commits the disabled
+  // state. Kept out of `onSubmit` itself (a ref read there would be reached
+  // by passing `onSubmit` into `handleSubmit(...)` during render, which
+  // react-hooks/refs flags as unsafe) — this wrapper is what's actually
+  // assigned to the form's `onSubmit`, which is the sanctioned place for a
+  // ref to be touched.
+  const isSubmittingRef = useRef(false);
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
+    <form
+      onSubmit={(event) => {
+        if (isSubmittingRef.current) {
+          event.preventDefault();
+          return;
+        }
+        isSubmittingRef.current = true;
+        void submitForm(event).finally(() => {
+          isSubmittingRef.current = false;
+        });
+      }}
+      className="space-y-6"
+      noValidate
+    >
       {/*
        * Honeypot — a real, focusable input so a bot's form-filler still
        * finds it, but positioned off-screen and pulled out of the tab

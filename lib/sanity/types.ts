@@ -49,6 +49,7 @@ export interface Film {
   playbackId: string;
   duration?: number;
   thumbnail?: SanityImage;
+  captionsUrl?: string;
   description?: string;
   client?: string;
   date?: string;
@@ -61,6 +62,7 @@ export interface Testimonial {
   quote: string;
   attribution: string;
   role?: string;
+  image?: SanityImage;
   category?: Category;
   order?: number;
 }

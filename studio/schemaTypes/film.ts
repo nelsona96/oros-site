@@ -39,6 +39,12 @@ export const film = defineType({
       options: {hotspot: true},
     }),
     defineField({
+      name: 'captions',
+      title: 'Captions (.vtt) — required for ministry and wedding films per DESIGN.md §11',
+      type: 'file',
+      options: {accept: '.vtt'},
+    }),
+    defineField({
       name: 'description',
       title: 'Description',
       type: 'text',

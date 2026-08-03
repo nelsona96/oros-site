@@ -29,6 +29,7 @@ const FILM_PROJECTION = `{
   "playbackId": video.asset->playbackId,
   "duration": video.asset->data.duration,
   "thumbnail": thumbnail${IMAGE_PROJECTION},
+  "captionsUrl": captions.asset->url,
   description,
   client,
   date,
@@ -37,7 +38,9 @@ const FILM_PROJECTION = `{
 }`;
 
 const TESTIMONIAL_PROJECTION = `{
-  _id, quote, attribution, role, category, order
+  _id, quote, attribution, role,
+  "image": image${IMAGE_PROJECTION},
+  category, order
 }`;
 
 const SERVICE_PROJECTION = `{

@@ -72,4 +72,18 @@ describe("FilmPlayer", () => {
     const style = container.querySelector("mux-player")?.getAttribute("style");
     expect(style).toContain("--media-focus-box-shadow: inset 0 0 0 2px var(--light-solid)");
   });
+
+  it("renders a captions track when the film has one", () => {
+    const { container } = render(
+      <FilmPlayer film={{ ...baseFilm, captionsUrl: "https://cdn.sanity.io/captions.vtt" }} />,
+    );
+    const track = container.querySelector("track");
+    expect(track).toHaveAttribute("kind", "captions");
+    expect(track).toHaveAttribute("src", "https://cdn.sanity.io/captions.vtt");
+  });
+
+  it("omits the track element when the film has no captions", () => {
+    const { container } = render(<FilmPlayer film={baseFilm} />);
+    expect(container.querySelector("track")).toBeNull();
+  });
 });

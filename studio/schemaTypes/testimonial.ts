@@ -24,6 +24,20 @@ export const testimonial = defineType({
       type: 'string',
     }),
     defineField({
+      name: 'image',
+      title: 'Image',
+      type: 'image',
+      options: {hotspot: true},
+      fields: [
+        defineField({
+          name: 'alt',
+          title: 'Alt text',
+          type: 'string',
+          validation: (rule) => rule.required(),
+        }),
+      ],
+    }),
+    defineField({
       name: 'category',
       title: 'Category',
       type: 'string',

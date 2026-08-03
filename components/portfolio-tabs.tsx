@@ -25,7 +25,7 @@ export function PortfolioTabs() {
           <Link
             key={tab.href}
             href={tab.href}
-            className={`ring-focus-ring rounded-control -mb-px border-b-2 px-1 pb-3 font-mono text-xs tracking-widest uppercase outline-none transition-colors focus-visible:ring-2 ${
+            className={`rounded-control -mb-px border-b-2 px-1 pb-3 font-mono text-xs tracking-widest uppercase transition-colors ${
               isActive
                 ? "border-light-solid text-text-primary"
                 : "border-transparent text-text-secondary hover:text-text-primary"

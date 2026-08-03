@@ -93,6 +93,48 @@
   --font-sans: var(--font-body);
   --font-heading: var(--font-display);
 
+  /*
+   * Fluid type scale — Phase 12c, tuned to Fraunces (Phase 12b). Each
+   * display tier interpolates between a mobile floor and a desktop ceiling
+   * directly off viewport width, replacing the old fixed text-Nxl +
+   * md:text-Nxl breakpoint jumps call sites used to hardcode individually.
+   * A constant ~1.3 ratio step between tiers (both at the mobile floor and
+   * the desktop ceiling) — revised down from an earlier first pass that
+   * reverse-engineered per-component legacy pixel values and ended up with
+   * inconsistent, visually "jumpy" steps between tiers.
+   *
+   * Line-height is paired directly onto each size (`--text-*--line-height`,
+   * Tailwind's own convention — see `--text-lg--line-height` etc. in
+   * tailwindcss/theme.css) rather than a separate `leading-display` utility.
+   * tailwind-merge's default config treats the `font-size` and `leading`
+   * class groups as conflicting (matching this same paired-value
+   * convention), so a later `text-display-*` class in the same `cn()` call
+   * silently cancelled an earlier standalone `leading-display` class —
+   * pairing them removes the second class entirely, so there's nothing
+   * left for it to cancel.
+   */
+  --text-display-xl: clamp(2.75rem, 2.45rem + 1.25vw, 3.5rem);
+  --text-display-xl--line-height: 1.05;
+  --text-display-lg: clamp(2.125rem, 1.9rem + 1vw, 2.625rem);
+  --text-display-lg--line-height: 1.05;
+  --text-display-md: clamp(1.625rem, 1.45rem + 0.75vw, 2rem);
+  --text-display-md--line-height: 1.05;
+  --text-display-sm: clamp(1.25rem, 1.1rem + 0.6vw, 1.5rem);
+  --text-display-sm--line-height: 1.1;
+  --text-body: 1rem;
+  --text-body--line-height: 1.65;
+  --text-body-sm: 0.875rem;
+  --text-body-sm--line-height: 1.55;
+  /* Matches Tailwind's own --text-xs--line-height exactly (calc(1 / 0.75))
+     — every mono-caps label site-wide is either this token via Eyebrow or a
+     raw text-xs utility (nav, breadcrumbs, footer links); without a paired
+     value here Eyebrow instead inherited the ambient 1.5 body line-height,
+     so the two rendered at different heights despite the same 12px size. */
+  --text-label: 0.75rem;
+  --text-label--line-height: calc(1 / 0.75);
+
+  --tracking-display: -0.015em;
+
   --color-app-bg: var(--app-bg);
   --color-app-bg-subtle: var(--app-bg-subtle);
   --color-surface: var(--surface);
@@ -240,5 +282,26 @@
      * calendar icon on a dark input that's nearly invisible.
      */
     color-scheme: dark;
+  }
+
+  /*
+   * Phase 12c: a single global focus rule replaces the
+   * `outline-none focus-visible:ring-2 ring-focus-ring` triplet that used
+   * to be hand-repeated on every custom interactive element (links, filter
+   * pills, icon buttons). Split in two because the removed classes were:
+   * `outline-none` unconditionally (no outline on mouse-click :focus either,
+   * pre-empting a Safari outline flash), plus a ring drawn only under
+   * `:focus-visible` (keyboard nav). Deliberately bare pseudo-class rules
+   * (specificity 0,0,1,0) rather than Tailwind utilities: shadcn/Base UI
+   * components (Button, Input, Select, ...) already ship their own
+   * `focus-visible:ring-*` utility, which combines a class selector with the
+   * pseudo-class (0,0,2,0) and so still wins here — this only supplies the
+   * ring where nothing more specific already does.
+   */
+  :focus {
+    outline: none;
+  }
+  :focus-visible {
+    box-shadow: 0 0 0 2px var(--focus-ring);
   }
 }

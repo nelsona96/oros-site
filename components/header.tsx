@@ -12,7 +12,7 @@ const NAV_LINKS = [
 ];
 
 const LINK_CLASSES =
-  "font-mono text-xs tracking-widest uppercase outline-none transition-colors rounded-control focus-visible:ring-2 ring-focus-ring";
+  "font-mono text-xs tracking-widest uppercase transition-colors rounded-control md:text-sm";
 
 export function Header() {
   const pathname = usePathname();
@@ -35,7 +35,7 @@ export function Header() {
         <Link
           href="/"
           aria-label="Oros Productions — home"
-          className={`text-text-primary outline-none focus-visible:ring-2 ring-focus-ring rounded-control`}
+          className="text-text-primary rounded-control"
         >
           <RidgelineMark className="h-6 w-auto" />
         </Link>

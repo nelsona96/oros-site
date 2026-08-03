@@ -10,9 +10,9 @@ export default async function VideosPage() {
   return (
     <Section className="pt-8 md:pt-12">
       <Container className="space-y-8">
-        <div>
+        <div className="space-y-4">
           <Eyebrow>Portfolio</Eyebrow>
-          <Display as="h1" className="text-4xl md:text-5xl">
+          <Display as="h1" size="md">
             Videos.
           </Display>
         </div>

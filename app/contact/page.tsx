@@ -14,7 +14,7 @@ export default async function ContactPage() {
         <div className="mx-auto max-w-xl space-y-10">
           <div className="space-y-4">
             <Eyebrow>Contact</Eyebrow>
-            <Display as="h1" className="text-4xl md:text-5xl">
+            <Display as="h1" size="md">
               Let&rsquo;s build something worth remembering.
             </Display>
           </div>

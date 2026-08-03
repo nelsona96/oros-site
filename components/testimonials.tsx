@@ -1,7 +1,7 @@
 import type { Testimonial } from "@/lib/sanity/types";
 import { Container } from "./container";
 import { Section } from "./section";
-import { Display, Eyebrow } from "./typography";
+import { Body, Display, Eyebrow } from "./typography";
 
 /**
  * DESIGN.md §8.5: quotes only for now — the client/venue/church marks row
@@ -14,9 +14,9 @@ export function Testimonials({ testimonials }: { testimonials: Testimonial[] }) 
   return (
     <Section className="bg-app-bg-subtle ascent-subtle">
       <Container className="space-y-8">
-        <div>
+        <div className="space-y-4">
           <Eyebrow>What Clients Say</Eyebrow>
-          <Display as="h2" className="text-4xl md:text-5xl">
+          <Display as="h2" size="md">
             Kind words from people we&rsquo;ve worked with.
           </Display>
         </div>
@@ -27,11 +27,11 @@ export function Testimonials({ testimonials }: { testimonials: Testimonial[] }) 
               key={testimonial._id}
               className="border-border bg-surface hover:bg-surface-hover hover:border-border-strong rounded-control space-y-3 border p-6 transition-colors"
             >
-              <p className="font-body text-text-primary">&ldquo;{testimonial.quote}&rdquo;</p>
-              <footer className="font-mono text-xs tracking-widest text-text-secondary uppercase">
+              <Body tone="primary">&ldquo;{testimonial.quote}&rdquo;</Body>
+              <Eyebrow as="footer" tone="secondary">
                 {testimonial.attribution}
                 {testimonial.role ? `, ${testimonial.role}` : null}
-              </footer>
+              </Eyebrow>
             </blockquote>
           ))}
         </div>

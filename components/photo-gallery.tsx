@@ -9,6 +9,7 @@ import { CategoryFilter } from "./category-filter";
 import { Icon } from "./icon";
 import { JustifiedGrid } from "./justified-grid";
 import { Spinner } from "./spinner";
+import { Body, Eyebrow } from "./typography";
 import { Dialog, DialogClose, DialogContent, DialogTitle } from "./ui/dialog";
 
 const LIGHTBOX_IMAGE_WIDTH = 1800;
@@ -207,7 +208,7 @@ export function PhotoGallery({ photos }: { photos: Photo[] }) {
                   <button
                     type="button"
                     aria-label="Close"
-                    className="ring-focus-ring rounded-control text-text-primary hover:text-text-accent absolute top-2 right-2 z-10 cursor-pointer touch-manipulation p-3 transition-opacity outline-none focus-visible:ring-2"
+                    className="rounded-control text-text-primary hover:text-text-accent absolute top-2 right-2 z-10 cursor-pointer touch-manipulation p-3 transition-opacity"
                   />
                 }
               >
@@ -226,15 +227,9 @@ export function PhotoGallery({ photos }: { photos: Photo[] }) {
 
               {active.caption || formatCapture(active.capture) ? (
                 <div className="flex w-full max-w-3xl flex-col items-center gap-1 text-center">
-                  {active.caption ? (
-                    <p className="font-body text-text-primary">
-                      {active.caption}
-                    </p>
-                  ) : null}
+                  {active.caption ? <Body tone="primary">{active.caption}</Body> : null}
                   {formatCapture(active.capture) ? (
-                    <p className="text-text-accent font-mono text-xs tracking-widest uppercase">
-                      {formatCapture(active.capture)}
-                    </p>
+                    <Eyebrow>{formatCapture(active.capture)}</Eyebrow>
                   ) : null}
                 </div>
               ) : null}
@@ -245,7 +240,7 @@ export function PhotoGallery({ photos }: { photos: Photo[] }) {
                   aria-label="Previous photo"
                   disabled={index === 0}
                   onClick={goPrev}
-                  className="ring-focus-ring rounded-control text-text-primary hover:text-text-accent cursor-pointer touch-manipulation p-3 transition-opacity outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-0"
+                  className="rounded-control text-text-primary hover:text-text-accent cursor-pointer touch-manipulation p-3 transition-opacity disabled:pointer-events-none disabled:opacity-0"
                 >
                   <Icon icon={ChevronLeft} size={28} />
                 </button>
@@ -254,7 +249,7 @@ export function PhotoGallery({ photos }: { photos: Photo[] }) {
                   aria-label="Next photo"
                   disabled={index === filtered.length - 1}
                   onClick={goNext}
-                  className="ring-focus-ring rounded-control text-text-primary hover:text-text-accent cursor-pointer touch-manipulation p-3 transition-opacity outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-0"
+                  className="rounded-control text-text-primary hover:text-text-accent cursor-pointer touch-manipulation p-3 transition-opacity disabled:pointer-events-none disabled:opacity-0"
                 >
                   <Icon icon={ChevronRight} size={28} />
                 </button>

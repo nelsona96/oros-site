@@ -1,7 +1,7 @@
 import type { Service } from "@/lib/sanity/types";
 import { Container } from "./container";
 import { Section } from "./section";
-import { Display, Eyebrow } from "./typography";
+import { Body, Display, Eyebrow } from "./typography";
 
 /**
  * DESIGN.md §8.3 / §1: the four verticals, named explicitly, are the
@@ -16,9 +16,9 @@ export function Services({ services }: { services: Service[] }) {
   return (
     <Section className="bg-app-bg-subtle ascent-subtle">
       <Container className="space-y-8">
-        <div>
+        <div className="space-y-4">
           <Eyebrow>Services</Eyebrow>
-          <Display as="h2" className="text-4xl md:text-5xl">
+          <Display as="h2" size="md">
             Four verticals, one studio.
           </Display>
         </div>
@@ -29,10 +29,10 @@ export function Services({ services }: { services: Service[] }) {
               key={service._id}
               className="border-border bg-surface hover:bg-surface-hover hover:border-border-strong rounded-control space-y-2 border p-6 transition-colors"
             >
-              <Display as="h3" className="text-2xl text-text-primary">
+              <Display as="h3" size="sm" className="text-text-primary">
                 {service.title}
               </Display>
-              <p className="font-body text-sm text-text-secondary">{service.blurb}</p>
+              <Body size="sm">{service.blurb}</Body>
             </div>
           ))}
         </div>

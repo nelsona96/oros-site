@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Container } from "@/components/container";
 import { FilmPlayer } from "@/components/film-player";
 import { Section } from "@/components/section";
-import { Display } from "@/components/typography";
+import { Body, Display, Eyebrow } from "@/components/typography";
 import { categoryLabel, formatDuration } from "@/lib/film";
 import { getFilmBySlug } from "@/lib/sanity/queries";
 
@@ -38,29 +38,29 @@ export default async function FilmPage({
             `inline-block`, not the default inline: a plain inline element's vertical margins
             (including the `space-y-6` above, pushing the next sibling down) have no layout
             effect per the CSS box model, so without it there's no visible gap above the video
-            box despite the parent's spacing utility. */}
+            box despite the parent's spacing utility. `align-top` alongside it: an inline-block
+            otherwise sits on its line box's baseline, which (with no other inline content in
+            this block-level parent) reads as a several-pixel drop versus a plain block element
+            like Eyebrow's <p> — align-top removes that phantom offset so this sits flush with
+            every other page's first line of content. */}
         <Link
           href="/portfolio/videos"
-          className="ring-focus-ring rounded-control text-text-accent hover:text-text-primary inline-block font-mono text-xs tracking-widest uppercase transition-colors outline-none focus-visible:ring-2"
+          className="rounded-control text-text-accent hover:text-text-primary inline-block align-top font-mono text-xs tracking-widest uppercase transition-colors"
         >
           Portfolio / Videos
         </Link>
         <div className="rounded-control bg-surface relative aspect-video overflow-hidden">
           <FilmPlayer film={film} />
         </div>
-        <div className="space-y-2">
-          <Display as="h1" className="text-3xl md:text-4xl">
+        <div className="space-y-1">
+          <Display as="h1" size="md">
             {film.title}
           </Display>
-          <p className="text-text-accent font-mono text-xs tracking-widest uppercase">
+          <Eyebrow>
             {categoryLabel(film.category)}
             {duration ? ` · ${duration}` : ""}
-          </p>
-          {film.description ? (
-            <p className="font-body text-text-secondary max-w-prose">
-              {film.description}
-            </p>
-          ) : null}
+          </Eyebrow>
+          {film.description ? <Body className="max-w-prose">{film.description}</Body> : null}
         </div>
       </Container>
     </Section>

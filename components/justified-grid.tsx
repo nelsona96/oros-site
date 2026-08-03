@@ -73,7 +73,7 @@ export function JustifiedGrid({
                 buttonRefs.current[index - 1]?.focus();
               }
             }}
-            className="ring-focus-ring reveal group touch-manipulation relative min-w-0 cursor-pointer outline-none focus-visible:z-10 focus-visible:ring-2"
+            className="reveal group touch-manipulation relative min-w-0 cursor-pointer focus-visible:z-10"
             style={{
               flexGrow: aspectRatio,
               flexBasis: `calc(var(--row-h) * ${aspectRatio})`,

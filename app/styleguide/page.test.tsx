@@ -31,7 +31,8 @@ describe("StyleguidePage", () => {
       expect(screen.getByText(label)).toBeInTheDocument();
     }
 
-    expect(screen.getByText("Scaling new heights in cinematic storytelling.")).toBeInTheDocument();
+    // Rendered once per Display size (xl/lg/md/sm) in the type scale block.
+    expect(screen.getAllByText("Scaling new heights in cinematic storytelling.").length).toBe(4);
     expect(screen.getByText("NIKON Z8 · 85MM · ƒ1.4 · 1/200")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Destructive" })).toBeInTheDocument();
   });

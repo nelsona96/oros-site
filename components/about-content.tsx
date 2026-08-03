@@ -3,7 +3,7 @@ import { urlFor } from "@/lib/sanity/image";
 import type { SiteSettings } from "@/lib/sanity/types";
 import { Container } from "./container";
 import { Section } from "./section";
-import { Display, Eyebrow } from "./typography";
+import { Body, Display, Eyebrow } from "./typography";
 
 /**
  * DESIGN.md §8.4 + SPEC.md §4: the full long-form about page, including the
@@ -36,14 +36,14 @@ export function AboutContent({ settings }: { settings: SiteSettings | null }) {
         <div className="space-y-4">
           <Eyebrow>About</Eyebrow>
           {heading ? (
-            <Display as="h1" className="text-4xl md:text-5xl">
+            <Display as="h1" size="md">
               {heading}
             </Display>
           ) : null}
           {paragraphs.map((paragraph, index) => (
-            <p key={index} className="max-w-prose font-body text-text-secondary">
+            <Body key={index} className="max-w-prose">
               {paragraph}
-            </p>
+            </Body>
           ))}
         </div>
       </Container>

@@ -4,7 +4,7 @@ import type { SiteSettings } from "@/lib/sanity/types";
 import { Icon } from "./icon";
 
 const LINK_CLASSES =
-  "ring-focus-ring rounded-control flex w-fit items-center gap-1.5 font-mono text-xs tracking-widest text-text-secondary uppercase outline-none transition-colors hover:text-text-accent focus-visible:ring-2";
+  "rounded-control flex w-fit items-center gap-1.5 font-mono text-xs tracking-widest text-text-secondary uppercase transition-colors hover:text-text-accent";
 
 /** Direct alternatives to the form, sourced from `siteSettings.contact*` — self-guards per field, like AboutSummary/ContactCta. */
 export function ContactInfo({ settings }: { settings: SiteSettings | null }) {

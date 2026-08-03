@@ -6,7 +6,7 @@ import type { SiteSettings } from "@/lib/sanity/types";
 import { Container } from "./container";
 import { Icon } from "./icon";
 import { Section } from "./section";
-import { Display, Eyebrow } from "./typography";
+import { Body, Display, Eyebrow } from "./typography";
 
 /**
  * DESIGN.md §8.4: "their face, their name, two or three sentences" — the
@@ -40,14 +40,14 @@ export function AboutSummary({ settings }: { settings: SiteSettings | null }) {
         <div className="space-y-4">
           <Eyebrow>About</Eyebrow>
           {heading ? (
-            <Display as="h2" className="text-4xl md:text-5xl">
+            <Display as="h2" size="md">
               {heading}
             </Display>
           ) : null}
-          {body ? <p className="max-w-prose font-body text-text-secondary">{body}</p> : null}
+          {body ? <Body className="max-w-prose">{body}</Body> : null}
           <Link
             href="/about"
-            className="ring-focus-ring rounded-control flex w-fit items-center gap-1 font-mono text-xs tracking-widest text-text-primary uppercase outline-none transition-colors hover:text-text-accent focus-visible:ring-2"
+            className="rounded-control flex w-fit items-center gap-1 font-mono text-xs tracking-widest text-text-primary uppercase transition-colors hover:text-text-accent"
           >
             Read the full story
             <Icon icon={ChevronRight} size={16} />
